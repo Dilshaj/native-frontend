@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, TouchableOpacityProps, View } from 'react-native';
+import { Text, TouchableOpacity, TouchableOpacityProps, View, StyleSheet } from 'react-native';
 import { ReactNode } from 'react';
 
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,9 +10,8 @@ interface ButtonProps extends TouchableOpacityProps {
     gradientColors?: string[];
 }
 
-export function Button({ variant = 'primary', children, icon, className, gradientColors, ...props }: ButtonProps) {
-    let baseClass = "h-11 rounded-xl flex-row justify-center items-center w-full"; // Removed from here if gradient used? No, keep container classes.
-    let baseContainerClass = "h-11 rounded-xl w-full";
+export function Button({ variant = 'primary', children, icon, className, gradientColors, style, ...props }: ButtonProps) {
+    let baseContainerClass = "h-12 rounded-xl w-full overflow-hidden";
     let variantClass = "";
     let textClass = "";
 
@@ -23,29 +22,34 @@ export function Button({ variant = 'primary', children, icon, className, gradien
             break;
         case 'outline':
             variantClass = "bg-transparent border border-gray-200";
-            textClass = "text-gray-900 font-semibold text-base";
+            textClass = "text-gray-900 font-bold text-base";
             break;
         case 'google':
             variantClass = "bg-white border border-gray-200";
-            textClass = "text-gray-700 font-semibold text-base";
+            textClass = "text-gray-700 font-bold text-base";
             break;
     }
 
     const content = (
-        <>
-            {icon && <View className="mr-3">{icon}</View>}
+        <View style={styles.contentContainer}>
+            {icon && <View style={styles.iconContainer}>{icon}</View>}
             <Text className={textClass}>{children}</Text>
-        </>
+        </View>
     );
 
     if (gradientColors) {
         return (
-            <TouchableOpacity className={`${baseContainerClass} ${className}`} {...props}>
+            <TouchableOpacity
+                className={`${baseContainerClass} ${className || ''}`}
+                style={style}
+                activeOpacity={0.8}
+                {...props}
+            >
                 <LinearGradient
                     colors={gradientColors as any}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    className="flex-1 rounded-xl flex-row justify-center items-center overflow-hidden"
+                    style={styles.flexCentering}
                 >
                     {content}
                 </LinearGradient>
@@ -54,8 +58,35 @@ export function Button({ variant = 'primary', children, icon, className, gradien
     }
 
     return (
-        <TouchableOpacity className={`${baseClass} ${variantClass} ${className}`} {...props}>
+        <TouchableOpacity
+            className={`${baseContainerClass} ${variantClass} ${className || ''}`}
+            style={[styles.baseCentering, style]}
+            activeOpacity={0.8}
+            {...props}
+        >
             {content}
         </TouchableOpacity>
     );
 }
+
+const styles = StyleSheet.create({
+    contentContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    iconContainer: {
+        marginRight: 10,
+    },
+    baseCentering: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    flexCentering: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flex: 1,
+    }
+});

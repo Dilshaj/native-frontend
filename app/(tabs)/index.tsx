@@ -1,4 +1,4 @@
-import { Text, View, ScrollView, SafeAreaView, TouchableOpacity, Dimensions, Platform, Modal, Animated as RNAnimated, DeviceEventEmitter } from 'react-native';
+import { Text, View, ScrollView, SafeAreaView, TouchableOpacity, Dimensions, Platform, Modal, Animated as RNAnimated, DeviceEventEmitter, TextInput } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -26,6 +26,7 @@ const MENU_ITEMS = [
   { id: '4', title: 'Freelancing', icon: 'briefcase-outline' },
   { id: '5', title: 'Fund Raising', icon: 'cash-outline' },
   { id: '6', title: 'Connect with mentors', icon: 'people-outline' },
+  { id: '7', title: 'Notifications', icon: 'notifications-outline' }, // Added at bottom
 ];
 
 // Mock Data
@@ -106,6 +107,205 @@ const POSTS = [
 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
+// --- Isolated Sidebar Components to prevent recursion ---
+
+function FeaturesView({ isDarkMode, onHide, menuItems }: { isDarkMode: boolean, onHide: () => void, menuItems: any[] }) {
+  return (
+    <View className="flex-1">
+      <View className="flex-row items-center px-4 py-4 border-b border-gray-100 bg-white">
+        <TouchableOpacity onPress={onHide} className="w-10 h-10 items-center justify-center rounded-full border border-gray-100 mr-4">
+          <Ionicons name="close" size={24} color="#333" />
+        </TouchableOpacity>
+        <Text className="text-xl font-bold text-gray-900">App Features</Text>
+      </View>
+      <ScrollView className="flex-1 pt-4 bg-white" showsVerticalScrollIndicator={false}>
+        {menuItems.map((item) => (
+          <TouchableOpacity key={item.id} className="flex-row items-center py-4 px-6 border-b border-gray-50">
+            <View className={`w-10 h-10 rounded-xl justify-center items-center mr-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
+              <Ionicons name={item.icon as any} size={20} color={isDarkMode ? '#e879f9' : '#a855f7'} />
+            </View>
+            <Text className="text-base font-semibold text-gray-800 flex-1">{item.title}</Text>
+            <Ionicons name="chevron-forward" size={16} color="#ccc" />
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+function SettingsView({ isDarkMode, onHide, onEditProfile }: { isDarkMode: boolean, onHide: () => void, onEditProfile: () => void }) {
+  return (
+    <View className="flex-1">
+      {/* Settings Header */}
+      <View className="flex-row items-center px-4 py-4 pt-8 bg-white border-b border-gray-50">
+        <TouchableOpacity onPress={onHide} className="w-10 h-10 items-center justify-center rounded-full border border-gray-100 mr-4">
+          <Ionicons name="chevron-back" size={24} color="#333" />
+        </TouchableOpacity>
+        <Text className="text-xl font-bold text-gray-900">Settings</Text>
+      </View>
+
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
+        <View className="px-6 py-6 flex-row items-center gap-4 bg-white">
+          <View className="relative">
+            <View className="w-16 h-16 rounded-full bg-[#a855f7] justify-center items-center">
+              <Ionicons name="person" size={40} color="white" />
+            </View>
+            <TouchableOpacity
+              onPress={onEditProfile}
+              className="absolute bottom-0 right-0 w-6 h-6 bg-white rounded-full items-center justify-center shadow-sm border border-gray-100"
+            >
+              <Ionicons name="pencil" size={14} color="#333" />
+            </TouchableOpacity>
+          </View>
+          <View>
+            <Text className="text-xl font-bold text-gray-900">Varahanarasimha Logisa</Text>
+            <Text className="text-gray-500 font-medium">79958 53246</Text>
+          </View>
+        </View>
+
+        {/* Action Cards */}
+        <View className="flex-row justify-between px-4 py-4 bg-white mb-4">
+          {[
+            { title: 'Your Orders', icon: 'bag-handle-outline' },
+            { title: 'Help & Support', icon: 'chatbubble-ellipses-outline' },
+            { title: 'Zepto Cash', icon: 'wallet-outline' }
+          ].map((item, i) => (
+            <TouchableOpacity key={i} className="w-[31%] h-[100px] bg-white border border-gray-100 rounded-2xl items-center justify-center shadow-sm p-2">
+              <View className="mb-2">
+                <Ionicons name={item.icon as any} size={28} color="#333" />
+              </View>
+              <Text className="text-[11px] font-bold text-gray-800 text-center leading-tight">{item.title.replace(' ', '\n')}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Your Information */}
+        <View className="mb-6">
+          <Text className="px-6 mb-3 text-[11px] font-bold text-gray-400 uppercase tracking-[2px]">Your Information</Text>
+          <View className="bg-white rounded-[32px] mx-4 overflow-hidden border border-gray-100 shadow-sm">
+            {[
+              { icon: 'refresh-outline', title: 'Your Refunds' },
+              { icon: 'card-outline', title: 'E-Gift Cards' },
+              { icon: 'chatbox-outline', title: 'Help & Support' },
+              { icon: 'location-outline', title: 'Saved Addresses', sub: '2 Addresses' },
+              { icon: 'person-circle-outline', title: 'Profile' },
+              { icon: 'gift-outline', title: 'Rewards' },
+              { icon: 'card-outline', title: 'Payment Management' },
+            ].map((item, index) => (
+              <TouchableOpacity key={index} className={`flex-row items-center px-6 py-5 ${index !== 6 ? 'border-b border-gray-50' : ''}`}>
+                <Ionicons name={item.icon as any} size={24} color="#333" className="mr-4" />
+                <View className="flex-1">
+                  <Text className="text-[15px] font-semibold text-gray-800">{item.title}</Text>
+                  {item.sub && <Text className="text-[11px] text-gray-400 mt-0.5">{item.sub}</Text>}
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#ccc" />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Logout Button - Modernized */}
+        <View className="px-6 mb-2">
+          <TouchableOpacity
+            className="w-full h-15 rounded-[24px] bg-red-50 flex-row items-center justify-center border border-red-100 shadow-sm"
+            onPress={() => console.log('Logout')}
+          >
+            <Ionicons name="log-out-outline" size={20} color="#dc2626" className="mr-2" />
+            <Text className="text-lg font-bold text-red-600">Log Out</Text>
+          </TouchableOpacity>
+          <Text className="mt-5 text-gray-400 text-[11px] text-center mb-10 tracking-widest font-medium">App version 26.1.3 • v120-8</Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function EditProfileView({ isDarkMode, onBack }: { isDarkMode: boolean, onBack: () => void }) {
+  return (
+    <View className="flex-1 bg-white">
+      {/* Header */}
+      <View className="flex-row items-center px-4 py-4 pt-8 bg-white">
+        <TouchableOpacity onPress={onBack} className="w-10 h-10 items-center justify-center">
+          <Ionicons name="arrow-back" size={28} color="#333" />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+        {/* Avatar */}
+        <View className="items-center mb-8">
+          <View className="relative">
+            <View className="w-36 h-36 rounded-full bg-gray-50 border-4 border-white shadow-xl items-center justify-center">
+              <Ionicons name="person" size={80} color="#e5e7eb" />
+            </View>
+            <TouchableOpacity className="absolute bottom-1 right-2 w-10 h-10 bg-white rounded-full items-center justify-center shadow-lg border border-gray-100">
+              <Ionicons name="pencil" size={20} color="#333" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View className="px-5">
+          {/* Basic Info Card */}
+          <View className="bg-white rounded-[32px] p-7 border border-gray-100 shadow-sm mb-6">
+            <Text className="text-2xl font-bold text-gray-900 mb-8">Basic information</Text>
+
+            {[
+              { label: 'Name', placeholder: 'Enter your name' },
+              { label: 'Phone number', value: '+91 7995853246', sub: 'The phone number associated with your account cannot be modified' },
+              { label: 'Email', placeholder: 'Enter your email' },
+              { label: 'Gender', placeholder: 'Select', isPicker: true },
+              { label: 'Birthday', placeholder: 'DD / MM / YY' },
+              { label: 'Anniversary', placeholder: 'DD / MM / YY' },
+            ].map((field, i) => (
+              <View key={i} className="mb-6">
+                <Text className="text-[13px] font-bold text-gray-500 mb-2.5 ml-1">{field.label}</Text>
+                {field.isPicker || field.value ? (
+                  <View className="bg-white border border-gray-100 rounded-2xl h-15 px-5 flex-row items-center justify-between shadow-sm">
+                    <Text className={`text-[16px] font-medium ${field.value ? 'text-gray-900' : 'text-gray-300'}`}>{field.value || field.placeholder}</Text>
+                    {field.isPicker && <Ionicons name="chevron-down" size={18} color="#ccc" />}
+                  </View>
+                ) : (
+                  <TextInput
+                    placeholder={field.placeholder}
+                    className="bg-white border border-gray-100 rounded-2xl h-15 px-5 text-gray-900 shadow-sm"
+                    placeholderTextColor="#d1d5db"
+                    style={{ fontSize: 16, fontWeight: '500' }}
+                  />
+                )}
+                {field.sub && (
+                  <View className="flex-row items-start mt-2.5 ml-1 pr-4">
+                    <Ionicons name="information-circle-outline" size={16} color="#9ca3af" className="mr-2 mt-0.5" />
+                    <Text className="text-[12px] text-gray-400 leading-tight flex-1">{field.sub}</Text>
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+
+          {/* Invoice Info Card */}
+          <View className="bg-white rounded-[32px] p-7 border border-gray-100 shadow-sm mb-6">
+            <Text className="text-2xl font-bold text-gray-900 mb-8">Invoice details</Text>
+            <View className="mb-2">
+              <Text className="text-[13px] font-bold text-gray-500 mb-2.5 ml-1">State</Text>
+              <TouchableOpacity className="bg-white border border-gray-100 rounded-2xl h-15 px-5 flex-row items-center justify-between shadow-sm">
+                <Text className="text-gray-300 text-[16px] font-medium">Select a billing state</Text>
+                <Ionicons name="chevron-down" size={18} color="#ccc" />
+              </TouchableOpacity>
+              <Text className="text-[11px] text-gray-400 mt-2.5 ml-1 italic">This is required to generate invoice</Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Button fixed at bottom above scroll */}
+      <View className="absolute bottom-0 left-0 right-0 bg-white/95 px-6 py-5 border-t border-gray-50 shadow-lg">
+        <TouchableOpacity className="w-full h-15 bg-gray-200 rounded-2xl items-center justify-center">
+          <Text className="text-base font-bold text-gray-400 uppercase tracking-widest">Update profile</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 function StoryItem({ story, isDarkMode }: { story: any, isDarkMode: boolean }) {
   const rotation = useSharedValue(0);
 
@@ -167,8 +367,9 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [drawerType, setDrawerType] = useState<'features' | 'settings' | 'edit-profile'>('settings');
   const navigation = useNavigation();
-  const sidebarAnim = useRef(new RNAnimated.Value(-width * 0.8)).current; // Start off-screen
+  const sidebarAnim = useRef(new RNAnimated.Value(width)).current; // Start off-screen - Full Width
 
   // Scroll Tracking for Tab Bar
   const lastContentOffset = useRef(0);
@@ -187,7 +388,7 @@ export default function HomeScreen() {
   // Sidebar Animation
   useEffect(() => {
     RNAnimated.timing(sidebarAnim, {
-      toValue: isSidebarOpen ? 0 : -width * 0.8,
+      toValue: isSidebarOpen ? 0 : width, // Slide from right (width) to 0
       duration: 300,
       useNativeDriver: true,
     }).start();
@@ -196,12 +397,14 @@ export default function HomeScreen() {
   // Sidebar Event Listener
   useEffect(() => {
     const subscription = DeviceEventEmitter.addListener('toggleSidebar', () => {
-      setSidebarOpen(prev => !prev);
+      setDrawerType('features');
+      setSidebarOpen(true);
     });
     return () => subscription.remove();
-  }, [isSidebarOpen]);
+  }, []); // Only register once
 
-  const toggleSidebar = () => {
+  const toggleSidebar = (type?: 'features' | 'settings' | 'edit-profile') => {
+    if (type) setDrawerType(type);
     setSidebarOpen(!isSidebarOpen);
   };
 
@@ -211,15 +414,15 @@ export default function HomeScreen() {
     DeviceEventEmitter.emit('themeChanged', newMode);
   };
 
-  // Scroll Handler
+  // Scroll Handler with debounce or threshold
   const handleScroll = (event: any) => {
     const currentOffset = event.nativeEvent.contentOffset.y;
-    const direction = currentOffset > 0 && currentOffset > lastContentOffset.current ? 'down' : 'up';
+    const isScrollingDown = currentOffset > 0 && currentOffset > lastContentOffset.current;
 
-    if (direction === 'down' && isTabBarVisible.current) {
+    if (isScrollingDown && isTabBarVisible.current && currentOffset > 50) {
       navigation.setOptions({ tabBarStyle: { display: 'none' } });
       isTabBarVisible.current = false;
-    } else if (direction === 'up' && !isTabBarVisible.current) {
+    } else if (!isScrollingDown && !isTabBarVisible.current) {
       navigation.setOptions({
         tabBarStyle: {
           display: 'flex',
@@ -260,30 +463,33 @@ export default function HomeScreen() {
 
         <SafeAreaView className="flex-1">
           <View className={`flex-row justify-between items-center px-4 py-3 border-b ${Platform.OS === 'android' ? 'mt-[30px]' : ''}`} style={{ backgroundColor: headerBg, borderBottomColor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f3f4f6' }}>
-            <View className="flex-row items-center gap-2">
-              {/* Header Icon Removed as per user request */}
-              <LinearGradient
-                colors={['#c084fc', '#e879f9']}
-                className="w-8 h-8 rounded-xl justify-center items-center"
-              >
-                <Ionicons name="school-outline" size={20} color="white" />
-              </LinearGradient>
-              <Text className={`text-xl font-[800]`} style={{ color: isDarkMode ? '#e879f9' : '#a855f7' }}>Eduprova</Text>
+            <View className="flex-row items-center gap-1.5">
+              <Image
+                source={require('../../assets/images/Eduprova logo (2).png')}
+                style={{ width: 14, height: 14 }}
+                contentFit="contain"
+              />
+              <Image
+                source={require('../../assets/images/eduprova_logo copy.png')}
+                style={{ width: 70, height: 18, marginTop: 2 }}
+                contentFit="contain"
+              />
             </View>
-            <View className="flex-row items-center gap-4">
+            <View className="flex-row items-center gap-2">
               <TouchableOpacity onPress={toggleTheme}>
                 <Ionicons name={isDarkMode ? "sunny-outline" : "moon-outline"} size={24} color={iconColor} />
               </TouchableOpacity>
               <TouchableOpacity>
                 <Ionicons name="search-outline" size={24} color={iconColor} />
               </TouchableOpacity>
-              <TouchableOpacity className="relative">
-                <Ionicons name="notifications-outline" size={24} color={iconColor} />
-                <View className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-[#8b5cf6] border border-white" />
+              <TouchableOpacity
+                onPress={() => toggleSidebar('settings')}
+                className={`w-10 h-10 rounded-xl justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white border border-gray-100'}`}
+              >
+                <Ionicons name="person" size={20} color={isDarkMode ? '#e879f9' : '#a855f7'} />
               </TouchableOpacity>
               <TouchableOpacity className="relative" onPress={() => (navigation as any).navigate('profile', { isDark: String(isDarkMode) })}>
                 <Image source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80' }} className="w-9 h-9 rounded-[18px] bg-[#eee]" />
-                <View className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#22c55e] rounded-full border-2 border-white" />
               </TouchableOpacity>
             </View>
           </View>
@@ -427,34 +633,37 @@ export default function HomeScreen() {
         </SafeAreaView>
       </ContentContainer>
 
-      {/* Sidebar Modal (Drawer) */}
+      {/* Sidebar Modal (Drawer) - Using isolated components to fix recursion */}
       {isSidebarOpen && (
         <View className="absolute inset-0 z-[1000] flex-row">
-          <TouchableOpacity className="flex-1 bg-black/50" onPress={toggleSidebar} />
-          <RNAnimated.View className="w-[80%] h-full absolute left-0 top-0 bottom-0 pt-[Platform.OS === 'android' ? 30 : 50] shadow-xl elevation-5" style={{ backgroundColor: sidebarBg, transform: [{ translateX: sidebarAnim }], paddingTop: Platform.OS === 'android' ? 30 : 50 }}>
-            <View className={`flex-row justify-between items-center px-5 pb-5 border-b`} style={{ borderBottomColor: isDarkMode ? '#1f1f2e' : '#f3f4f6' }}>
-              <Text className="text-2xl font-bold" style={{ color: textPrimary }}>Features</Text>
-              <TouchableOpacity onPress={toggleSidebar}>
-                <Ionicons name="close" size={24} color={textSecondary} />
-              </TouchableOpacity>
-            </View>
-            <ScrollView className="flex-1 pt-5">
-              {MENU_ITEMS.map((item) => (
-                <TouchableOpacity key={item.id} className="flex-row items-center py-4 px-5">
-                  <View className={`w-10 h-10 rounded-xl justify-center items-center mr-4 ${isDarkMode ? 'bg-[#1f1f2e]' : 'bg-[#f3f4f6]'}`}>
-                    <Ionicons name={item.icon as any} size={20} color={isDarkMode ? '#e879f9' : '#a855f7'} />
-                  </View>
-                  <Text className="text-base font-semibold" style={{ color: textPrimary }}>{item.title}</Text>
-                  <Ionicons name="chevron-forward" size={16} color={textSecondary} style={{ marginLeft: 'auto' }} />
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <View className="p-5 border-t" style={{ borderTopColor: isDarkMode ? '#1f1f2e' : '#f3f4f6' }}>
-              <TouchableOpacity className="flex-row items-center gap-3">
-                <Ionicons name="log-out-outline" size={20} color="#ef4444" />
-                <Text className="text-base font-semibold text-[#ef4444]">Log Out</Text>
-              </TouchableOpacity>
-            </View>
+          <TouchableOpacity className="absolute inset-0 bg-black/5" onPress={() => setSidebarOpen(false)} />
+          <RNAnimated.View
+            className="w-full h-full absolute right-0 top-0 bottom-0 shadow-xl"
+            style={{
+              backgroundColor: isDarkMode ? '#111827' : '#f8f9fa',
+              transform: [{ translateX: sidebarAnim }]
+            }}
+          >
+            <SafeAreaView className="flex-1">
+              {drawerType === 'features' ? (
+                <FeaturesView
+                  isDarkMode={isDarkMode}
+                  onHide={() => setSidebarOpen(false)}
+                  menuItems={MENU_ITEMS}
+                />
+              ) : drawerType === 'settings' ? (
+                <SettingsView
+                  isDarkMode={isDarkMode}
+                  onHide={() => setSidebarOpen(false)}
+                  onEditProfile={() => setDrawerType('edit-profile')}
+                />
+              ) : (
+                <EditProfileView
+                  isDarkMode={isDarkMode}
+                  onBack={() => setDrawerType('settings')}
+                />
+              )}
+            </SafeAreaView>
           </RNAnimated.View>
         </View>
       )}

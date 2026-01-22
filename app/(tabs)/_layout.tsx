@@ -2,11 +2,9 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform, View, DeviceEventEmitter, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
   const [isDarkMode, setIsDarkMode] = React.useState(false);
@@ -73,19 +71,6 @@ export default function TabLayout() {
         })}
       />
       <Tabs.Screen
-        name="jobs"
-        options={({ navigation }) => ({
-          title: 'Jobs',
-          headerShown: true,
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 16 }}>
-              <Ionicons name="arrow-back" size={24} color="black" />
-            </TouchableOpacity>
-          ),
-          tabBarIcon: ({ color }) => <Ionicons size={24} name="briefcase-outline" color={color} />,
-        })}
-      />
-      <Tabs.Screen
         name="messages"
         options={({ navigation }) => ({
           title: 'Messages',
@@ -96,6 +81,19 @@ export default function TabLayout() {
             </TouchableOpacity>
           ),
           tabBarIcon: ({ color }) => <Ionicons size={24} name="chatbubble-outline" color={color} />,
+        })}
+      />
+      <Tabs.Screen
+        name="jobs"
+        options={({ navigation }) => ({
+          title: 'Jobs',
+          headerShown: true,
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 16 }}>
+              <Ionicons name="arrow-back" size={24} color="black" />
+            </TouchableOpacity>
+          ),
+          tabBarIcon: ({ color }) => <Ionicons size={24} name="briefcase-outline" color={color} />,
         })}
       />
       <Tabs.Screen
