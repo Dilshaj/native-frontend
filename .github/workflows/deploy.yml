@@ -3,7 +3,7 @@ name: Deploy React Native Web to Vercel
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build-and-deploy:
