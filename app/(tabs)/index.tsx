@@ -134,86 +134,162 @@ function FeaturesView({ isDarkMode, onHide, menuItems }: { isDarkMode: boolean, 
 }
 
 function SettingsView({ isDarkMode, onHide, onEditProfile }: { isDarkMode: boolean, onHide: () => void, onEditProfile: () => void }) {
+  const iconBgColor = isDarkMode ? 'rgba(168, 85, 247, 0.15)' : '#f3f0ff';
+  const iconColor = '#a855f7';
+
   return (
     <View className="flex-1">
-      {/* Settings Header */}
-      <View className="flex-row items-center px-4 py-4 pt-8 bg-white border-b border-gray-50">
-        <TouchableOpacity onPress={onHide} className="w-10 h-10 items-center justify-center rounded-full border border-gray-100 mr-4">
-          <Ionicons name="chevron-back" size={24} color="#333" />
+      {/* Modern Settings Header */}
+      <View
+        className={`flex-row items-center px-4 pb-4 bg-white border-b border-gray-100 ${Platform.OS === 'android' ? 'pt-14' : 'pt-12'}`}
+      >
+        <TouchableOpacity
+          onPress={onHide}
+          className="w-10 h-10 items-center justify-center rounded-full bg-gray-50 mr-4"
+        >
+          <Ionicons name="chevron-back" size={22} color="#1f2937" />
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-900">Settings</Text>
+        <Text className="text-2xl font-extrabold text-gray-900 tracking-tight">Settings</Text>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
-        <View className="px-6 py-6 flex-row items-center gap-4 bg-white">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 150 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* User Quick Profile Card */}
+        <View className="px-6 py-8 flex-row items-center gap-5 bg-white mb-2">
           <View className="relative">
-            <View className="w-16 h-16 rounded-full bg-[#a855f7] justify-center items-center">
-              <Ionicons name="person" size={40} color="white" />
-            </View>
+            <LinearGradient
+              colors={['#a855f7', '#3b82f6']}
+              className="w-18 h-18 rounded-3xl items-center justify-center"
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Ionicons name="person" size={32} color="white" />
+            </LinearGradient>
             <TouchableOpacity
               onPress={onEditProfile}
-              className="absolute bottom-0 right-0 w-6 h-6 bg-white rounded-full items-center justify-center shadow-sm border border-gray-100"
+              className="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full items-center justify-center shadow-md border-2 border-white"
             >
-              <Ionicons name="pencil" size={14} color="#333" />
+              <Ionicons name="camera" size={14} color="#3b82f6" />
             </TouchableOpacity>
           </View>
-          <View>
-            <Text className="text-xl font-bold text-gray-900">Varahanarasimha Logisa</Text>
-            <Text className="text-gray-500 font-medium">79958 53246</Text>
+          <View className="flex-1">
+            <Text className="text-2xl font-bold text-gray-900 leading-tight">V. Narasimha</Text>
+            <View className="flex-row items-center mt-1">
+              <View className="bg-emerald-100 px-2 py-0.5 rounded-full mr-2">
+                <Text className="text-emerald-700 text-[10px] font-bold">ACTIVE STUDENT</Text>
+              </View>
+              <Text className="text-gray-500 text-sm">79958 53246</Text>
+            </View>
           </View>
+          <TouchableOpacity onPress={onEditProfile} className="bg-gray-100 p-2 rounded-xl">
+            <Ionicons name="settings-outline" size={20} color="#6b7280" />
+          </TouchableOpacity>
         </View>
 
-        {/* Action Cards */}
-        <View className="flex-row justify-between px-4 py-4 bg-white mb-4">
+        {/* Premium Dashboard Cards - Eduprova Specific */}
+        <View className="flex-row justify-between px-4 py-4 bg-white gap-3 mb-6">
           {[
-            { title: 'Your Orders', icon: 'bag-handle-outline' },
-            { title: 'Help & Support', icon: 'chatbubble-ellipses-outline' },
-            { title: 'Zepto Cash', icon: 'wallet-outline' }
+            { title: 'My Courses', icon: 'book', color: '#3b82f6', sub: '12 Active' },
+            { title: 'AI Tools', icon: 'sparkles', color: '#a855f7', sub: 'Pro Access' },
+            { title: 'Certificates', icon: 'trophy', color: '#f59e0b', sub: '4 Earned' }
           ].map((item, i) => (
-            <TouchableOpacity key={i} className="w-[31%] h-[100px] bg-white border border-gray-100 rounded-2xl items-center justify-center shadow-sm p-2">
-              <View className="mb-2">
-                <Ionicons name={item.icon as any} size={28} color="#333" />
+            <TouchableOpacity key={i} className="flex-1 h-[110px] bg-white border border-gray-100 rounded-3xl items-center justify-center shadow-sm p-3">
+              <View className="w-10 h-10 rounded-2xl items-center justify-center mb-2" style={{ backgroundColor: `${item.color}15` }}>
+                <Ionicons name={item.icon as any} size={22} color={item.color} />
               </View>
-              <Text className="text-[11px] font-bold text-gray-800 text-center leading-tight">{item.title.replace(' ', '\n')}</Text>
+              <Text className="text-[12px] font-bold text-gray-800 text-center">{item.title}</Text>
+              <Text className="text-[9px] text-gray-400 mt-0.5">{item.sub}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Your Information */}
-        <View className="mb-6">
-          <Text className="px-6 mb-3 text-[11px] font-bold text-gray-400 uppercase tracking-[2px]">Your Information</Text>
-          <View className="bg-white rounded-[32px] mx-4 overflow-hidden border border-gray-100 shadow-sm">
+        {/* Learning & Career Section */}
+        <View className="mb-8">
+          <Text className="px-6 mb-4 text-[12px] font-black text-indigo-500 uppercase tracking-[2px]">Learning & Career</Text>
+          <View className="bg-white rounded-[40px] mx-4 overflow-hidden border border-gray-100 shadow-sm">
             {[
-              { icon: 'refresh-outline', title: 'Your Refunds' },
-              { icon: 'card-outline', title: 'E-Gift Cards' },
-              { icon: 'chatbox-outline', title: 'Help & Support' },
-              { icon: 'location-outline', title: 'Saved Addresses', sub: '2 Addresses' },
-              { icon: 'person-circle-outline', title: 'Profile' },
-              { icon: 'gift-outline', title: 'Rewards' },
-              { icon: 'card-outline', title: 'Payment Management' },
-            ].map((item, index) => (
-              <TouchableOpacity key={index} className={`flex-row items-center px-6 py-5 ${index !== 6 ? 'border-b border-gray-50' : ''}`}>
-                <Ionicons name={item.icon as any} size={24} color="#333" className="mr-4" />
-                <View className="flex-1">
-                  <Text className="text-[15px] font-semibold text-gray-800">{item.title}</Text>
-                  {item.sub && <Text className="text-[11px] text-gray-400 mt-0.5">{item.sub}</Text>}
+              { icon: 'document-text-outline', title: 'AI Resume Builder', badge: 'New' },
+              { icon: 'mic-outline', title: 'AI Mock Interviews' },
+              { icon: 'school-outline', title: 'Mentor Collaborations' },
+              { icon: 'briefcase-outline', title: 'Job Opportunities', sub: '15 matches' },
+              { icon: 'flash-outline', title: 'Freelance Hub' },
+              { icon: 'rocket-outline', title: 'Fund Raising' },
+            ].map((item, index, arr) => (
+              <TouchableOpacity key={index} className={`flex-row items-center px-6 py-5 ${index !== arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                <View className="w-10 h-10 rounded-2xl bg-gray-50 items-center justify-center mr-4">
+                  <Ionicons name={item.icon as any} size={20} color="#4b5563" />
                 </View>
-                <Ionicons name="chevron-forward" size={18} color="#ccc" />
+                <View className="flex-1">
+                  <Text className="text-[15px] font-bold text-gray-800">{item.title}</Text>
+                  {item.sub && <Text className="text-[11px] text-gray-400 mt-1">{item.sub}</Text>}
+                </View>
+                {item.badge && (
+                  <View className="bg-indigo-500 px-2 py-0.5 rounded-full mr-2">
+                    <Text className="text-white text-[10px] font-bold">{item.badge}</Text>
+                  </View>
+                )}
+                <Ionicons name="chevron-forward" size={18} color="#d1d5db" />
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        {/* Logout Button - Modernized */}
-        <View className="px-6 mb-2">
+        {/* Networking & Comm Section */}
+        <View className="mb-8">
+          <Text className="px-6 mb-4 text-[12px] font-black text-indigo-500 uppercase tracking-[2px]">Communications</Text>
+          <View className="bg-white rounded-[40px] mx-4 overflow-hidden border border-gray-100 shadow-sm">
+            {[
+              { icon: 'chatbubbles-outline', title: 'Messaging Portal', sub: 'Direct chats' },
+              { icon: 'videocam-outline', title: 'Video Sessions', sub: 'Live learning' },
+              { icon: 'people-outline', title: 'Social Feed Hub', sub: 'My posts & interaction' },
+            ].map((item, index, arr) => (
+              <TouchableOpacity key={index} className={`flex-row items-center px-6 py-5 ${index !== arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                <View className="w-10 h-10 rounded-2xl bg-gray-50 items-center justify-center mr-4">
+                  <Ionicons name={item.icon as any} size={20} color="#4b5563" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-[15px] font-bold text-gray-800">{item.title}</Text>
+                  {item.sub && <Text className="text-[11px] text-gray-400 mt-1">{item.sub}</Text>}
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#d1d5db" />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* System & Support */}
+        <View className="mb-6">
+          <Text className="px-6 mb-4 text-[12px] font-black text-gray-400 uppercase tracking-[2px]">System</Text>
+          <View className="bg-white rounded-[40px] mx-4 overflow-hidden border border-gray-100 shadow-sm">
+            {[
+              { icon: 'notifications-outline', title: 'Notifications' },
+              { icon: 'lock-closed-outline', title: 'Privacy & Security' },
+              { icon: 'help-circle-outline', title: 'Support Center' },
+            ].map((item, index, arr) => (
+              <TouchableOpacity key={index} className={`flex-row items-center px-6 py-5 ${index !== arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                <Ionicons name={item.icon as any} size={22} color="#9ca3af" className="mr-5" />
+                <Text className="text-[15px] font-semibold text-gray-700 flex-1">{item.title}</Text>
+                <Ionicons name="chevron-forward" size={18} color="#e5e7eb" />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Logout - Unique Model UI */}
+        <View className="px-6 mb-4">
           <TouchableOpacity
-            className="w-full h-15 rounded-[24px] bg-red-50 flex-row items-center justify-center border border-red-100 shadow-sm"
+            className="w-full h-16 rounded-3xl bg-rose-50 flex-row items-center justify-center border border-rose-100"
             onPress={() => console.log('Logout')}
           >
-            <Ionicons name="log-out-outline" size={20} color="#dc2626" className="mr-2" />
-            <Text className="text-lg font-bold text-red-600">Log Out</Text>
+            <View className="w-8 h-8 rounded-full bg-rose-100 items-center justify-center mr-3">
+              <Ionicons name="log-out" size={18} color="#e11d48" />
+            </View>
+            <Text className="text-lg font-bold text-rose-600">Sign Out</Text>
           </TouchableOpacity>
-          <Text className="mt-5 text-gray-400 text-[11px] text-center mb-10 tracking-widest font-medium">App version 26.1.3 • v120-8</Text>
+          <Text className="mt-8 text-gray-300 text-[10px] text-center mb-10 font-bold uppercase tracking-widest">Eduprova v1.0.4.premium</Text>
         </View>
       </ScrollView>
     </View>
@@ -433,8 +509,8 @@ export default function HomeScreen() {
           elevation: 0,
           backgroundColor: isDarkMode ? 'transparent' : '#ffffff',
           borderTopWidth: 0,
-          height: Platform.OS === 'android' ? 70 : 70,
-          paddingBottom: Platform.OS === 'android' ? 10 : 10,
+          height: Platform.OS === 'android' ? 85 : 70,
+          paddingBottom: Platform.OS === 'android' ? 25 : 10,
         }
       });
       isTabBarVisible.current = true;
