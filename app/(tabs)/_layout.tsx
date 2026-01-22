@@ -38,8 +38,8 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: isDarkMode ? 'transparent' : '#ffffff',
           borderTopColor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb',
-          height: Platform.OS === 'android' ? 110 : 90,
-          paddingBottom: Platform.OS === 'android' ? 50 : 30,
+          height: Platform.OS === 'android' ? 70 : 70,
+          paddingBottom: Platform.OS === 'android' ? 10 : 10,
           paddingTop: 10,
           position: 'absolute', // Needed for gradient background to show if transparent
           elevation: 0, // Remove shadow

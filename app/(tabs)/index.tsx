@@ -433,8 +433,8 @@ export default function HomeScreen() {
           elevation: 0,
           backgroundColor: isDarkMode ? 'transparent' : '#ffffff',
           borderTopWidth: 0,
-          height: Platform.OS === 'android' ? 110 : 90,
-          paddingBottom: Platform.OS === 'android' ? 50 : 30,
+          height: Platform.OS === 'android' ? 70 : 70,
+          paddingBottom: Platform.OS === 'android' ? 10 : 10,
         }
       });
       isTabBarVisible.current = true;
