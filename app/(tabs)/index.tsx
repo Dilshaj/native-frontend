@@ -681,9 +681,6 @@ function MainContent({
           >
             <Ionicons name="person" size={20} color={isDarkMode ? '#fff' : '#374151'} />
           </TouchableOpacity>
-          <TouchableOpacity className="relative" onPress={() => (navigation as any).navigate('profile', { isDark: String(isDarkMode) })}>
-            <Image source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80' }} className="w-9 h-9 rounded-[18px] bg-[#eee]" />
-          </TouchableOpacity>
         </View>
       </View>
 
