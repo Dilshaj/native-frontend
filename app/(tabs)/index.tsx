@@ -1,6 +1,6 @@
-import { Text, View, ScrollView, SafeAreaView, TouchableOpacity, Dimensions, Platform, Modal, Animated as RNAnimated, DeviceEventEmitter, TextInput } from 'react-native';
+import { Text, View, ScrollView, SafeAreaView, TouchableOpacity, Dimensions, Platform, Modal, Animated as RNAnimated, DeviceEventEmitter, TextInput, Alert } from 'react-native';
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -112,22 +112,48 @@ const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 function FeaturesView({ isDarkMode, onHide, menuItems }: { isDarkMode: boolean, onHide: () => void, menuItems: any[] }) {
   return (
     <View className="flex-1">
-      <View className="flex-row items-center px-4 py-4 border-b border-gray-100 bg-white">
-        <TouchableOpacity onPress={onHide} className="w-10 h-10 items-center justify-center rounded-full border border-gray-100 mr-4">
-          <Ionicons name="close" size={24} color="#333" />
+      {/* Modern Header with proper top spacing */}
+      <View
+        className={`flex-row items-center px-4 pb-4 bg-white border-b border-gray-100 ${Platform.OS === 'android' ? 'pt-14' : 'pt-12'}`}
+      >
+        <TouchableOpacity
+          onPress={onHide}
+          className="w-10 h-10 items-center justify-center rounded-full bg-gray-50 mr-4"
+        >
+          <Ionicons name="chevron-back" size={20} color="#1f2937" />
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-900">App Features</Text>
+        <Text className="text-xl font-bold text-gray-900 tracking-tight">App Features</Text>
       </View>
-      <ScrollView className="flex-1 pt-4 bg-white" showsVerticalScrollIndicator={false}>
-        {menuItems.map((item) => (
-          <TouchableOpacity key={item.id} className="flex-row items-center py-4 px-6 border-b border-gray-50">
-            <View className={`w-10 h-10 rounded-xl justify-center items-center mr-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
-              <Ionicons name={item.icon as any} size={20} color={isDarkMode ? '#e879f9' : '#a855f7'} />
-            </View>
-            <Text className="text-base font-semibold text-gray-800 flex-1">{item.title}</Text>
-            <Ionicons name="chevron-forward" size={16} color="#ccc" />
-          </TouchableOpacity>
-        ))}
+
+      <ScrollView
+        className="flex-1 bg-[#f8f9fa]"
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="mx-4 bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-sm">
+          {menuItems.map((item, index) => (
+            <TouchableOpacity
+              key={item.id}
+              className={`flex-row items-center p-5 ${index !== menuItems.length - 1 ? 'border-b border-gray-50' : ''}`}
+            >
+              <View className="w-10 h-10 rounded-2xl bg-gray-50 justify-center items-center mr-4">
+                <Ionicons name={item.icon as any} size={20} color="#6b7280" />
+              </View>
+              <Text className="text-[15px] font-bold text-gray-800 flex-1">{item.title}</Text>
+              <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View className="mt-8 px-6">
+          <View className="bg-indigo-50 p-6 rounded-[24px] border border-indigo-100">
+            <Text className="text-indigo-900 font-bold text-base mb-1">Need Help?</Text>
+            <Text className="text-indigo-600 text-xs leading-relaxed mb-4">Our support team is available 24/7 to help you with any issues.</Text>
+            <TouchableOpacity className="bg-white px-4 py-2.5 rounded-xl self-start border border-indigo-100">
+              <Text className="text-indigo-600 font-bold text-[12px]">Contact Support</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
@@ -135,7 +161,18 @@ function FeaturesView({ isDarkMode, onHide, menuItems }: { isDarkMode: boolean, 
 
 function SettingsView({ isDarkMode, onHide, onEditProfile }: { isDarkMode: boolean, onHide: () => void, onEditProfile: () => void }) {
   const iconBgColor = isDarkMode ? 'rgba(168, 85, 247, 0.15)' : '#f3f0ff';
-  const iconColor = '#a855f7';
+
+  const handleImageUpload = () => {
+    Alert.alert(
+      "Profile Photo",
+      "Choose an option to update your profile photo",
+      [
+        { text: "Take Photo", onPress: () => console.log("Camera opened") },
+        { text: "Choose from Gallery", onPress: () => console.log("File manager opened") },
+        { text: "Cancel", style: "cancel" }
+      ]
+    );
+  };
 
   return (
     <View className="flex-1">
@@ -147,147 +184,123 @@ function SettingsView({ isDarkMode, onHide, onEditProfile }: { isDarkMode: boole
           onPress={onHide}
           className="w-10 h-10 items-center justify-center rounded-full bg-gray-50 mr-4"
         >
-          <Ionicons name="chevron-back" size={22} color="#1f2937" />
+          <Ionicons name="chevron-back" size={20} color="#1f2937" />
         </TouchableOpacity>
-        <Text className="text-2xl font-extrabold text-gray-900 tracking-tight">Settings</Text>
+        <Text className="text-xl font-bold text-gray-900 tracking-tight">Settings</Text>
       </View>
 
       <ScrollView
-        className="flex-1"
+        className="flex-1 bg-[#f8fbff]"
         contentContainerStyle={{ paddingBottom: 150 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* User Quick Profile Card */}
-        <View className="px-6 py-8 flex-row items-center gap-5 bg-white mb-2">
+        {/* User Quick Profile Card - bg-white removed */}
+        <View className="px-6 py-6 flex-row items-center gap-4 mb-2">
           <View className="relative">
-            <LinearGradient
-              colors={['#a855f7', '#3b82f6']}
-              className="w-18 h-18 rounded-3xl items-center justify-center"
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Ionicons name="person" size={32} color="white" />
-            </LinearGradient>
+            <View className="w-16 h-16 rounded-full bg-white items-center justify-center border border-gray-100 shadow-sm">
+              <Ionicons name="person" size={32} color="black" />
+            </View>
             <TouchableOpacity
-              onPress={onEditProfile}
-              className="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full items-center justify-center shadow-md border-2 border-white"
+              onPress={handleImageUpload}
+              className="absolute -bottom-0.5 -right-0.5 w-8 h-8 bg-white rounded-full items-center justify-center shadow-lg border-2 border-white"
             >
-              <Ionicons name="camera" size={14} color="#3b82f6" />
+              <Ionicons name="camera" size={16} color="#374151" />
             </TouchableOpacity>
           </View>
           <View className="flex-1">
-            <Text className="text-2xl font-bold text-gray-900 leading-tight">V. Narasimha</Text>
-            <View className="flex-row items-center mt-1">
+            <Text className="text-xl font-bold text-gray-900">V. Narasimha</Text>
+            <View className="flex-row items-center mt-0.5">
               <View className="bg-emerald-100 px-2 py-0.5 rounded-full mr-2">
-                <Text className="text-emerald-700 text-[10px] font-bold">ACTIVE STUDENT</Text>
+                <Text className="text-emerald-700 text-[9px] font-bold">ACTIVE STUDENT</Text>
               </View>
-              <Text className="text-gray-500 text-sm">79958 53246</Text>
+              <Text className="text-gray-400 text-xs font-medium">79958 53246</Text>
             </View>
           </View>
-          <TouchableOpacity onPress={onEditProfile} className="bg-gray-100 p-2 rounded-xl">
-            <Ionicons name="settings-outline" size={20} color="#6b7280" />
-          </TouchableOpacity>
         </View>
 
-        {/* Premium Dashboard Cards - Eduprova Specific */}
-        <View className="flex-row justify-between px-4 py-4 bg-white gap-3 mb-6">
+        {/* Premium Dashboard Cards - bg-white removed */}
+        <View className="flex-row justify-between px-4 py-3 gap-2 mb-4">
           {[
             { title: 'My Courses', icon: 'book', color: '#3b82f6', sub: '12 Active' },
             { title: 'AI Tools', icon: 'sparkles', color: '#a855f7', sub: 'Pro Access' },
             { title: 'Certificates', icon: 'trophy', color: '#f59e0b', sub: '4 Earned' }
           ].map((item, i) => (
-            <TouchableOpacity key={i} className="flex-1 h-[110px] bg-white border border-gray-100 rounded-3xl items-center justify-center shadow-sm p-3">
-              <View className="w-10 h-10 rounded-2xl items-center justify-center mb-2" style={{ backgroundColor: `${item.color}15` }}>
-                <Ionicons name={item.icon as any} size={22} color={item.color} />
+            <TouchableOpacity key={i} className="flex-1 h-[100px] bg-white border border-gray-100 rounded-2xl items-center justify-center shadow-sm p-2">
+              <View className="w-9 h-9 rounded-xl items-center justify-center mb-2" style={{ backgroundColor: `${item.color}10` }}>
+                <Ionicons name={item.icon as any} size={18} color={item.color} />
               </View>
-              <Text className="text-[12px] font-bold text-gray-800 text-center">{item.title}</Text>
+              <Text className="text-[11px] font-bold text-gray-800 text-center">{item.title}</Text>
               <Text className="text-[9px] text-gray-400 mt-0.5">{item.sub}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Learning & Career Section */}
-        <View className="mb-8">
-          <Text className="px-6 mb-4 text-[12px] font-black text-indigo-500 uppercase tracking-[2px]">Learning & Career</Text>
-          <View className="bg-white rounded-[40px] mx-4 overflow-hidden border border-gray-100 shadow-sm">
-            {[
-              { icon: 'document-text-outline', title: 'AI Resume Builder', badge: 'New' },
-              { icon: 'mic-outline', title: 'AI Mock Interviews' },
-              { icon: 'school-outline', title: 'Mentor Collaborations' },
-              { icon: 'briefcase-outline', title: 'Job Opportunities', sub: '15 matches' },
-              { icon: 'flash-outline', title: 'Freelance Hub' },
-              { icon: 'rocket-outline', title: 'Fund Raising' },
-            ].map((item, index, arr) => (
-              <TouchableOpacity key={index} className={`flex-row items-center px-6 py-5 ${index !== arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                <View className="w-10 h-10 rounded-2xl bg-gray-50 items-center justify-center mr-4">
-                  <Ionicons name={item.icon as any} size={20} color="#4b5563" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-[15px] font-bold text-gray-800">{item.title}</Text>
-                  {item.sub && <Text className="text-[11px] text-gray-400 mt-1">{item.sub}</Text>}
-                </View>
-                {item.badge && (
-                  <View className="bg-indigo-500 px-2 py-0.5 rounded-full mr-2">
-                    <Text className="text-white text-[10px] font-bold">{item.badge}</Text>
-                  </View>
-                )}
-                <Ionicons name="chevron-forward" size={18} color="#d1d5db" />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Networking & Comm Section */}
-        <View className="mb-8">
-          <Text className="px-6 mb-4 text-[12px] font-black text-indigo-500 uppercase tracking-[2px]">Communications</Text>
-          <View className="bg-white rounded-[40px] mx-4 overflow-hidden border border-gray-100 shadow-sm">
-            {[
-              { icon: 'chatbubbles-outline', title: 'Messaging Portal', sub: 'Direct chats' },
-              { icon: 'videocam-outline', title: 'Video Sessions', sub: 'Live learning' },
-              { icon: 'people-outline', title: 'Social Feed Hub', sub: 'My posts & interaction' },
-            ].map((item, index, arr) => (
-              <TouchableOpacity key={index} className={`flex-row items-center px-6 py-5 ${index !== arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                <View className="w-10 h-10 rounded-2xl bg-gray-50 items-center justify-center mr-4">
-                  <Ionicons name={item.icon as any} size={20} color="#4b5563" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-[15px] font-bold text-gray-800">{item.title}</Text>
-                  {item.sub && <Text className="text-[11px] text-gray-400 mt-1">{item.sub}</Text>}
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#d1d5db" />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* System & Support */}
+        {/* Your Information Section */}
         <View className="mb-6">
-          <Text className="px-6 mb-4 text-[12px] font-black text-gray-400 uppercase tracking-[2px]">System</Text>
-          <View className="bg-white rounded-[40px] mx-4 overflow-hidden border border-gray-100 shadow-sm">
+          <Text className="px-6 mb-3 text-[11px] font-bold text-gray-900 uppercase tracking-[1.5px]">Your Information</Text>
+          <View className="bg-white rounded-[24px] mx-4 overflow-hidden border border-gray-100 shadow-sm">
+            {[
+              { icon: 'currency-inr', title: 'Your Refunds', library: 'MaterialCommunityIcons' },
+              { icon: 'help-circle-outline', title: 'Help & Support' },
+              { icon: 'person-outline', title: 'Profile' },
+              { icon: 'gift-outline', title: 'Rewards' },
+              { icon: 'card-outline', title: 'Payment Management' },
+            ].map((item, index, arr) => (
+              <View key={index}>
+                <TouchableOpacity className="flex-row items-center px-6 py-4">
+                  <View className="w-9 h-9 rounded-xl bg-gray-50 items-center justify-center mr-4">
+                    {item.library === 'MaterialCommunityIcons' ? (
+                      <MaterialCommunityIcons name={item.icon as any} size={18} color="#6b7280" />
+                    ) : (
+                      <Ionicons name={item.icon as any} size={18} color="#6b7280" />
+                    )}
+                  </View>
+                  <Text className="text-sm font-semibold text-gray-800 flex-1">{item.title}</Text>
+                  <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
+                </TouchableOpacity>
+                {index !== arr.length - 1 && (
+                  <View className="mx-6" style={{ borderBottomWidth: 1, borderBottomColor: '#f1f5f9', borderStyle: 'dashed' }} />
+                )}
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Other Information Section */}
+        <View className="mb-6">
+          <Text className="px-6 mb-3 text-[11px] font-bold text-gray-900 uppercase tracking-[1.5px]">Other Information</Text>
+          <View className="bg-white rounded-[24px] mx-4 overflow-hidden border border-gray-100 shadow-sm">
             {[
               { icon: 'notifications-outline', title: 'Notifications' },
               { icon: 'lock-closed-outline', title: 'Privacy & Security' },
-              { icon: 'help-circle-outline', title: 'Support Center' },
+              { icon: 'document-text-outline', title: 'Legal & Policy' },
             ].map((item, index, arr) => (
-              <TouchableOpacity key={index} className={`flex-row items-center px-6 py-5 ${index !== arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                <Ionicons name={item.icon as any} size={22} color="#9ca3af" className="mr-5" />
-                <Text className="text-[15px] font-semibold text-gray-700 flex-1">{item.title}</Text>
-                <Ionicons name="chevron-forward" size={18} color="#e5e7eb" />
-              </TouchableOpacity>
+              <View key={index}>
+                <TouchableOpacity className="flex-row items-center px-6 py-4">
+                  <View className="w-9 h-9 rounded-xl bg-gray-50 items-center justify-center mr-4">
+                    <Ionicons name={item.icon as any} size={18} color="#6b7280" />
+                  </View>
+                  <Text className="text-sm font-semibold text-gray-700 flex-1">{item.title}</Text>
+                  <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
+                </TouchableOpacity>
+                {index !== arr.length - 1 && (
+                  <View className="mx-6" style={{ borderBottomWidth: 1, borderBottomColor: '#f1f5f9', borderStyle: 'dashed' }} />
+                )}
+              </View>
             ))}
           </View>
         </View>
 
-        {/* Logout - Unique Model UI */}
+        {/* Compact Sign Out */}
         <View className="px-6 mb-4">
           <TouchableOpacity
-            className="w-full h-16 rounded-3xl bg-rose-50 flex-row items-center justify-center border border-rose-100"
+            className="w-full h-14 rounded-2xl bg-rose-50 flex-row items-center justify-center border border-rose-100"
             onPress={() => console.log('Logout')}
           >
-            <View className="w-8 h-8 rounded-full bg-rose-100 items-center justify-center mr-3">
-              <Ionicons name="log-out" size={18} color="#e11d48" />
+            <View className="mr-2">
+              <Ionicons name="log-out-outline" size={18} color="#e11d48" />
             </View>
-            <Text className="text-lg font-bold text-rose-600">Sign Out</Text>
+            <Text className="text-base font-bold text-rose-600">Sign Out</Text>
           </TouchableOpacity>
           <Text className="mt-8 text-gray-300 text-[10px] text-center mb-10 font-bold uppercase tracking-widest">Eduprova v1.0.4.premium</Text>
         </View>
@@ -461,28 +474,47 @@ export default function HomeScreen() {
   const sidebarBg = isDarkMode ? '#111827' : '#fff';
 
 
-  // Sidebar Animation
+  // Sidebar Animation - Simplified entry/exit
   useEffect(() => {
-    RNAnimated.timing(sidebarAnim, {
-      toValue: isSidebarOpen ? 0 : width, // Slide from right (width) to 0
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
+    if (isSidebarOpen) {
+      RNAnimated.timing(sidebarAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }).start();
+    }
   }, [isSidebarOpen]);
 
-  // Sidebar Event Listener
-  useEffect(() => {
-    const subscription = DeviceEventEmitter.addListener('toggleSidebar', () => {
-      setDrawerType('features');
-      setSidebarOpen(true);
+  const hideSidebar = () => {
+    RNAnimated.timing(sidebarAnim, {
+      toValue: width,
+      duration: 400,
+      useNativeDriver: true,
+    }).start(() => {
+      setSidebarOpen(false);
     });
-    return () => subscription.remove();
-  }, []); // Only register once
+  };
 
   const toggleSidebar = (type?: 'features' | 'settings' | 'edit-profile') => {
-    if (type) setDrawerType(type);
-    setSidebarOpen(!isSidebarOpen);
+    if (isSidebarOpen) {
+      // If clicking the same type, close it. If clicking different type, switch it.
+      if (type && type !== drawerType) {
+        setDrawerType(type);
+      } else {
+        hideSidebar();
+      }
+    } else {
+      if (type) setDrawerType(type);
+      setSidebarOpen(true);
+    }
   };
+
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener('toggleSidebar', () => {
+      toggleSidebar('features');
+    });
+    return () => subscription.remove();
+  }, [isSidebarOpen, drawerType]);
 
   const toggleTheme = () => {
     const newMode = !isDarkMode;
@@ -509,8 +541,8 @@ export default function HomeScreen() {
           elevation: 0,
           backgroundColor: isDarkMode ? 'transparent' : '#ffffff',
           borderTopWidth: 0,
-          height: Platform.OS === 'android' ? 85 : 70,
-          paddingBottom: Platform.OS === 'android' ? 25 : 10,
+          height: Platform.OS === 'android' ? 95 : 70,
+          paddingBottom: Platform.OS === 'android' ? 35 : 10,
         }
       });
       isTabBarVisible.current = true;
@@ -518,201 +550,58 @@ export default function HomeScreen() {
     lastContentOffset.current = currentOffset;
   };
 
-  const ContentContainer = (isDarkMode ? LinearGradient : View) as any;
-
-  // Custom Dark Mode Gradient: Deep Purple/Pink Top -> Black Middle
-  const containerProps = isDarkMode
-    ? {
-      colors: ['#4a044e', '#2e1065', '#172554', '#000000'], // Deep Fuchsia -> Deep Violet -> Deep Blue -> Black
-      locations: [0, 0.3, 0.6, 1],
-      className: "flex-1 bg-white",
-      start: { x: 0, y: 0 },
-      end: { x: 0, y: 0.3 } // 30% Height
-    }
-    : { className: "flex-1 bg-white" };
-
   return (
     <View className="flex-1">
-      <ContentContainer {...containerProps}>
-        {isDarkMode && <StatusBar style="light" />}
-        {!isDarkMode && <StatusBar style="dark" />}
+      {isDarkMode ? (
+        <LinearGradient
+          colors={['#4a044e', '#2e1065', '#172554', '#000000']}
+          locations={[0, 0.3, 0.6, 1]}
+          className="flex-1 bg-white"
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 0.3 }}
+        >
+          <StatusBar style="light" />
+          <SafeAreaView className="flex-1">
+            <MainContent
+              headerBg={headerBg}
+              iconColor={iconColor}
+              handleScroll={handleScroll}
+              toggleTheme={toggleTheme}
+              toggleSidebar={toggleSidebar}
+              textPrimary={textPrimary}
+              textSecondary={textSecondary}
+              cardBg={cardBg}
+              cardBorder={cardBorder}
+              isDarkMode={isDarkMode}
+              navigation={navigation}
+            />
+          </SafeAreaView>
+        </LinearGradient>
+      ) : (
+        <View className="flex-1 bg-white">
+          <StatusBar style="dark" />
+          <SafeAreaView className="flex-1">
+            <MainContent
+              headerBg={headerBg}
+              iconColor={iconColor}
+              handleScroll={handleScroll}
+              toggleTheme={toggleTheme}
+              toggleSidebar={toggleSidebar}
+              textPrimary={textPrimary}
+              textSecondary={textSecondary}
+              cardBg={cardBg}
+              cardBorder={cardBorder}
+              isDarkMode={isDarkMode}
+              navigation={navigation}
+            />
+          </SafeAreaView>
+        </View>
+      )}
 
-        <SafeAreaView className="flex-1">
-          <View className={`flex-row justify-between items-center px-4 py-3 border-b ${Platform.OS === 'android' ? 'mt-[30px]' : ''}`} style={{ backgroundColor: headerBg, borderBottomColor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f3f4f6' }}>
-            <View className="flex-row items-center gap-1.5">
-              <Image
-                source={require('../../assets/images/Eduprova logo (2).png')}
-                style={{ width: 14, height: 14 }}
-                contentFit="contain"
-              />
-              <Image
-                source={require('../../assets/images/eduprova_logo copy.png')}
-                style={{ width: 70, height: 18, marginTop: 2 }}
-                contentFit="contain"
-              />
-            </View>
-            <View className="flex-row items-center gap-2">
-              <TouchableOpacity onPress={toggleTheme}>
-                <Ionicons name={isDarkMode ? "sunny-outline" : "moon-outline"} size={24} color={iconColor} />
-              </TouchableOpacity>
-              <TouchableOpacity>
-                <Ionicons name="search-outline" size={24} color={iconColor} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => toggleSidebar('settings')}
-                className={`w-10 h-10 rounded-xl justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white border border-gray-100'}`}
-              >
-                <Ionicons name="person" size={20} color={isDarkMode ? '#e879f9' : '#a855f7'} />
-              </TouchableOpacity>
-              <TouchableOpacity className="relative" onPress={() => (navigation as any).navigate('profile', { isDark: String(isDarkMode) })}>
-                <Image source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80' }} className="w-9 h-9 rounded-[18px] bg-[#eee]" />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <ScrollView
-            onScroll={handleScroll}
-            scrollEventThrottle={16} // smooth scrolling
-            contentContainerStyle={{ paddingTop: 16, paddingBottom: 100 }}
-            showsVerticalScrollIndicator={false}
-          >
-
-            <View className={`mx-4 h-[180px] rounded-[20px] overflow-hidden mb-6 ${isDarkMode ? 'bg-[#1f1f2e]' : 'bg-[#f1f5f9]'}`}>
-              <Video
-                className="w-full h-full"
-                source={require('@/assets/images/video.mp4')}
-                useNativeControls={false}
-                resizeMode={ResizeMode.COVER}
-                isLooping
-                shouldPlay
-                isMuted
-              />
-            </View>
-
-            <View className="mb-6">
-              <View className="flex-row justify-between items-center px-4 mb-4">
-                <View className="flex-row items-center gap-2">
-                  <View className="w-1 h-5 bg-[#3b82f6] rounded-sm" />
-                  <Text className="text-lg font-bold" style={{ color: textPrimary }}>AI Stories</Text>
-                </View>
-                <TouchableOpacity>
-                  <Text className="text-[#0ea5e9] font-semibold text-sm">See All <Ionicons name="chevron-forward" size={12} /></Text>
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="pl-4" contentContainerStyle={{ paddingRight: 16, paddingTop: 12 }}>
-                <TouchableOpacity className={`w-[90px] h-[120px] rounded-2xl border border-dashed justify-center items-center mr-3 relative`} style={{ borderColor: isDarkMode ? '#4b5563' : '#e5e7eb' }}>
-                  <View className="items-center gap-2">
-                    <LinearGradient
-                      colors={['#3b82f6', '#8b5cf6']}
-                      className="w-12 h-12 rounded-full justify-center items-center"
-                    >
-                      <Ionicons name="add" size={24} color="white" />
-                    </LinearGradient>
-                    <Text className="text-xs font-semibold" style={{ color: textSecondary }}>Create</Text>
-                  </View>
-                  <View className="absolute -top-2 -right-2 bg-[#3b82f6] px-2 py-0.5 rounded-[10px]">
-                    <Text className="text-white text-[10px] font-bold">New</Text>
-                  </View>
-                </TouchableOpacity>
-
-                {STORIES.map((story) => (
-                  <StoryItem key={story.id} story={story} isDarkMode={isDarkMode} />
-                ))}
-              </ScrollView>
-            </View>
-
-            <View className="pb-5">
-              <View className="flex-row justify-between items-center px-4 mb-4">
-                <View className="flex-row items-center gap-2">
-                  <View className="w-1 h-5 rounded-sm bg-[#d946ef]" />
-                  <Text className="text-lg font-bold" style={{ color: textPrimary }}>Your Feed</Text>
-                </View>
-                <View className={`flex-row p-0.5 rounded-lg ${isDarkMode ? 'bg-[#1f1f2e]' : 'bg-[#f3f4f6]'}`}>
-                  <TouchableOpacity className={`px-3 py-1.5 rounded-md ${isDarkMode ? 'bg-[#0f766e]' : 'bg-[#ccfbf1]'}`}>
-                    <Text className={`text-xs font-semibold ${isDarkMode ? 'text-[#ccfbf1]' : 'text-[#0f766e]'}`}>Latest</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity className="px-3 py-1.5 rounded-md">
-                    <Text className="text-xs font-semibold" style={{ color: textSecondary }}>Trending</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              <View className="px-4 gap-5">
-                {POSTS.map((post) => (
-                  <View key={post.id} className="rounded-2xl border p-4 shadow-sm elevation-2" style={{ backgroundColor: cardBg, borderColor: cardBorder }}>
-                    <View className="flex-row mb-3">
-                      <Image source={{ uri: post.avatar }} className="w-11 h-11 rounded-full mr-3" />
-                      <View className="flex-1 justify-center">
-                        <View className="flex-row items-center gap-1.5">
-                          <Text className="text-[15px] font-bold" style={{ color: textPrimary }}>{post.user}</Text>
-                          {post.aiBadge && (
-                            <View className={`px-1 rounded ${isDarkMode ? 'bg-[#0c4a6e]' : 'bg-[#bae6fd]'}`}>
-                              <Text className={`text-[9px] font-[800] ${isDarkMode ? 'text-[#7dd3fc]' : 'text-[#0284c7]'}`}>AI</Text>
-                            </View>
-                          )}
-                        </View>
-                        <Text className="text-xs mt-0.5" style={{ color: textSecondary }}>{post.role}</Text>
-                      </View>
-                      <View className="flex-row items-start gap-2">
-                        <Text className="text-xs mt-0.5" style={{ color: textSecondary }}>{post.time}</Text>
-                        <TouchableOpacity>
-                          <Ionicons name="ellipsis-horizontal" size={20} color={textSecondary} />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-
-                    <Text className="text-sm leading-[22px] mb-3" style={{ color: isDarkMode ? '#e5e7eb' : '#374151' }}>{post.content}</Text>
-
-                    <View className="flex-row flex-wrap gap-2 mb-3">
-                      {post.tags.map((tag, index) => (
-                        <View key={index} className={`px-2.5 py-1 rounded-md ${isDarkMode ? 'bg-white/10' : 'bg-[#f3f4f6]'}`}>
-                          <Text className={`text-xs font-semibold ${isDarkMode ? 'text-[#d1d5db]' : 'text-[#4b5563]'}`}>{tag}</Text>
-                        </View>
-                      ))}
-                    </View>
-
-                    <View className={`w-full h-[220px] rounded-xl overflow-hidden mb-4 relative ${isDarkMode ? 'bg-[#1f1f2e]' : 'bg-[#f3f4f6]'}`}>
-                      <Image source={{ uri: post.image }} className="w-full h-full" contentFit="cover" />
-                      {post.isAiGenerated && (
-                        <View className={`absolute top-3 left-3 flex-row items-center gap-1 px-2.5 py-1.5 rounded-lg ${isDarkMode ? 'bg-black/70' : 'bg-white/90'}`}>
-                          <Ionicons name="sparkles" size={12} color="#0ea5e9" />
-                          <Text className={`text-[11px] font-bold ${isDarkMode ? 'text-[#bae6fd]' : 'text-[#0284c7]'}`}>AI Generated</Text>
-                        </View>
-                      )}
-                    </View>
-
-                    <View className="flex-row items-center gap-5">
-                      <TouchableOpacity className="flex-row items-center gap-1.5">
-                        <Ionicons name="heart-outline" size={24} color={textSecondary} />
-                        <Text className="text-[13px] font-semibold" style={{ color: textSecondary }}>{post.likes}</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity className="flex-row items-center gap-1.5">
-                        <Ionicons name="chatbubble-outline" size={24} color={textSecondary} />
-                        <Text className="text-[13px] font-semibold" style={{ color: textSecondary }}>{post.comments}</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity className="flex-row items-center gap-1.5">
-                        <Ionicons name="share-social-outline" size={24} color={textSecondary} />
-                        <Text className="text-[13px] font-semibold" style={{ color: textSecondary }}>{post.shares}</Text>
-                      </TouchableOpacity>
-                      <View className="flex-1" />
-                      <TouchableOpacity>
-                        <Ionicons name="bookmark-outline" size={24} color={textSecondary} />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-          </ScrollView>
-        </SafeAreaView>
-      </ContentContainer>
-
-      {/* Sidebar Modal (Drawer) - Using isolated components to fix recursion */}
+      {/* Sidebar Modal (Drawer) */}
       {isSidebarOpen && (
         <View className="absolute inset-0 z-[1000] flex-row">
-          <TouchableOpacity className="absolute inset-0 bg-black/5" onPress={() => setSidebarOpen(false)} />
+          <TouchableOpacity className="absolute inset-0 bg-black/5" onPress={hideSidebar} />
           <RNAnimated.View
             className="w-full h-full absolute right-0 top-0 bottom-0 shadow-xl"
             style={{
@@ -724,13 +613,13 @@ export default function HomeScreen() {
               {drawerType === 'features' ? (
                 <FeaturesView
                   isDarkMode={isDarkMode}
-                  onHide={() => setSidebarOpen(false)}
+                  onHide={hideSidebar}
                   menuItems={MENU_ITEMS}
                 />
               ) : drawerType === 'settings' ? (
                 <SettingsView
                   isDarkMode={isDarkMode}
-                  onHide={() => setSidebarOpen(false)}
+                  onHide={hideSidebar}
                   onEditProfile={() => setDrawerType('edit-profile')}
                 />
               ) : (
@@ -747,4 +636,191 @@ export default function HomeScreen() {
   );
 }
 
+// Separate component for home screen body to avoid deep nesting and re-renders
+function MainContent({
+  headerBg,
+  iconColor,
+  handleScroll,
+  toggleTheme,
+  toggleSidebar,
+  textPrimary,
+  textSecondary,
+  cardBg,
+  cardBorder,
+  isDarkMode,
+  navigation
+}: any) {
+  return (
+    <View className="flex-1">
+      <View
+        className={`flex-row justify-between items-center px-4 py-3 border-b ${Platform.OS === 'android' ? 'mt-[30px]' : ''}`}
+        style={{ backgroundColor: headerBg, borderBottomColor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f3f4f6' }}
+      >
+        <View className="flex-row items-center gap-1.5">
+          <Image
+            source={require('../../assets/images/Eduprova logo (2).png')}
+            style={{ width: 14, height: 14 }}
+            contentFit="contain"
+          />
+          <Image
+            source={require('../../assets/images/eduprova_logo copy.png')}
+            style={{ width: 70, height: 18, marginTop: 2 }}
+            contentFit="contain"
+          />
+        </View>
+        <View className="flex-row items-center gap-2">
+          <TouchableOpacity onPress={toggleTheme}>
+            <Ionicons name={isDarkMode ? "sunny-outline" : "moon-outline"} size={24} color={iconColor} />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Ionicons name="search-outline" size={24} color={iconColor} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => toggleSidebar('settings')}
+            className={`w-10 h-10 rounded-full justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50 border border-gray-100'}`}
+          >
+            <Ionicons name="person" size={20} color={isDarkMode ? '#fff' : '#374151'} />
+          </TouchableOpacity>
+          <TouchableOpacity className="relative" onPress={() => (navigation as any).navigate('profile', { isDark: String(isDarkMode) })}>
+            <Image source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80' }} className="w-9 h-9 rounded-[18px] bg-[#eee]" />
+          </TouchableOpacity>
+        </View>
+      </View>
 
+      <ScrollView
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className={`mx-4 h-[180px] rounded-[20px] overflow-hidden mb-6 ${isDarkMode ? 'bg-[#1f1f2e]' : 'bg-[#f1f5f9]'}`}>
+          <Video
+            className="w-full h-full"
+            source={require('@/assets/images/video.mp4')}
+            useNativeControls={false}
+            resizeMode={ResizeMode.COVER}
+            isLooping
+            shouldPlay
+            isMuted
+          />
+        </View>
+
+        <View className="mb-6">
+          <View className="flex-row justify-between items-center px-4 mb-4">
+            <View className="flex-row items-center gap-2">
+              <View className="w-1 h-5 bg-[#3b82f6] rounded-sm" />
+              <Text className="text-lg font-bold" style={{ color: textPrimary }}>AI Stories</Text>
+            </View>
+            <TouchableOpacity>
+              <Text className="text-[#0ea5e9] font-semibold text-sm">See All <Ionicons name="chevron-forward" size={12} /></Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="pl-4" contentContainerStyle={{ paddingRight: 16, paddingTop: 12 }}>
+            <TouchableOpacity className={`w-[90px] h-[120px] rounded-2xl border border-dashed justify-center items-center mr-3 relative`} style={{ borderColor: isDarkMode ? '#4b5563' : '#e5e7eb' }}>
+              <View className="items-center gap-2">
+                <LinearGradient
+                  colors={['#3b82f6', '#8b5cf6']}
+                  className="w-12 h-12 rounded-full justify-center items-center"
+                >
+                  <Ionicons name="add" size={24} color="white" />
+                </LinearGradient>
+                <Text className="text-xs font-semibold" style={{ color: textSecondary }}>Create</Text>
+              </View>
+              <View className="absolute -top-2 -right-2 bg-[#3b82f6] px-2 py-0.5 rounded-[10px]">
+                <Text className="text-white text-[10px] font-bold">New</Text>
+              </View>
+            </TouchableOpacity>
+
+            {STORIES.map((story) => (
+              <StoryItem key={story.id} story={story} isDarkMode={isDarkMode} />
+            ))}
+          </ScrollView>
+        </View>
+
+        <View className="pb-5">
+          <View className="flex-row justify-between items-center px-4 mb-4">
+            <View className="flex-row items-center gap-2">
+              <View className="w-1 h-5 rounded-sm bg-[#d946ef]" />
+              <Text className="text-lg font-bold" style={{ color: textPrimary }}>Your Feed</Text>
+            </View>
+            <View className={`flex-row p-0.5 rounded-lg ${isDarkMode ? 'bg-[#1f1f2e]' : 'bg-[#f3f4f6]'}`}>
+              <TouchableOpacity className={`px-3 py-1.5 rounded-md ${isDarkMode ? 'bg-[#0f766e]' : 'bg-[#ccfbf1]'}`}>
+                <Text className={`text-xs font-semibold ${isDarkMode ? 'text-[#ccfbf1]' : 'text-[#0f766e]'}`}>Latest</Text>
+              </TouchableOpacity>
+              <TouchableOpacity className="px-3 py-1.5 rounded-md">
+                <Text className="text-xs font-semibold" style={{ color: textSecondary }}>Trending</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View className="px-4 gap-5">
+            {POSTS.map((post) => (
+              <View key={post.id} className="rounded-2xl border p-4 shadow-sm elevation-2" style={{ backgroundColor: cardBg, borderColor: cardBorder }}>
+                <View className="flex-row mb-3">
+                  <Image source={{ uri: post.avatar }} className="w-11 h-11 rounded-full mr-3" />
+                  <View className="flex-1 justify-center">
+                    <View className="flex-row items-center gap-1.5">
+                      <Text className="text-[15px] font-bold" style={{ color: textPrimary }}>{post.user}</Text>
+                      {post.aiBadge && (
+                        <View className={`px-2 rounded ${isDarkMode ? 'bg-[#0c4a6e]' : 'bg-[#bae6fd]'}`}>
+                          <Text className={`text-[9px] font-[800] ${isDarkMode ? 'text-[#7dd3fc]' : 'text-[#0284c7]'}`}>AI</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text className="text-xs mt-0.5" style={{ color: textSecondary }}>{post.role}</Text>
+                  </View>
+                  <View className="flex-row items-start gap-2">
+                    <Text className="text-xs mt-0.5" style={{ color: textSecondary }}>{post.time}</Text>
+                    <TouchableOpacity>
+                      <Ionicons name="ellipsis-horizontal" size={20} color={textSecondary} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <Text className="text-sm leading-[22px] mb-3" style={{ color: isDarkMode ? '#e5e7eb' : '#374151' }}>{post.content}</Text>
+
+                <View className="flex-row flex-wrap gap-2 mb-3">
+                  {post.tags.map((tag, index) => (
+                    <View key={index} className={`px-2.5 py-1 rounded-md ${isDarkMode ? 'bg-white/10' : 'bg-[#f3f4f6]'}`}>
+                      <Text className={`text-xs font-semibold ${isDarkMode ? 'text-[#d1d5db]' : 'text-[#4b5563]'}`}>{tag}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                <View className={`w-full h-[220px] rounded-xl overflow-hidden mb-4 relative ${isDarkMode ? 'bg-[#1f1f2e]' : 'bg-[#f3f4f6]'}`}>
+                  <Image source={{ uri: post.image }} className="w-full h-full" contentFit="cover" />
+                  {post.isAiGenerated && (
+                    <View className={`absolute top-3 left-3 flex-row items-center gap-1 px-2.5 py-1.5 rounded-lg ${isDarkMode ? 'bg-black/70' : 'bg-white/90'}`}>
+                      <Ionicons name="sparkles" size={12} color="#0ea5e9" />
+                      <Text className={`text-[11px] font-bold ${isDarkMode ? 'text-[#bae6fd]' : 'text-[#0284c7]'}`}>AI Generated</Text>
+                    </View>
+                  )}
+                </View>
+
+                <View className="flex-row items-center gap-5">
+                  <TouchableOpacity className="flex-row items-center gap-1.5">
+                    <Ionicons name="heart-outline" size={24} color={textSecondary} />
+                    <Text className="text-[13px] font-semibold" style={{ color: textSecondary }}>{post.likes}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity className="flex-row items-center gap-1.5">
+                    <Ionicons name="chatbubble-outline" size={24} color={textSecondary} />
+                    <Text className="text-[13px] font-semibold" style={{ color: textSecondary }}>{post.comments}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity className="flex-row items-center gap-1.5">
+                    <Ionicons name="share-social-outline" size={24} color={textSecondary} />
+                    <Text className="text-[13px] font-semibold" style={{ color: textSecondary }}>{post.shares}</Text>
+                  </TouchableOpacity>
+                  <View className="flex-1" />
+                  <TouchableOpacity>
+                    <Ionicons name="bookmark-outline" size={24} color={textSecondary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
