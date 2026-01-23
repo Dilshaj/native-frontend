@@ -2,11 +2,9 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform, View, DeviceEventEmitter, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
   const [isDarkMode, setIsDarkMode] = React.useState(false);
@@ -40,8 +38,8 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: isDarkMode ? 'transparent' : '#ffffff',
           borderTopColor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb',
-          height: Platform.OS === 'android' ? 110 : 90,
-          paddingBottom: Platform.OS === 'android' ? 50 : 30,
+          height: Platform.OS === 'android' ? 85 : 70,
+          paddingBottom: Platform.OS === 'android' ? 25 : 10,
           paddingTop: 10,
           position: 'absolute', // Needed for gradient background to show if transparent
           elevation: 0, // Remove shadow
@@ -73,19 +71,6 @@ export default function TabLayout() {
         })}
       />
       <Tabs.Screen
-        name="jobs"
-        options={({ navigation }) => ({
-          title: 'Jobs',
-          headerShown: true,
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 16 }}>
-              <Ionicons name="arrow-back" size={24} color="black" />
-            </TouchableOpacity>
-          ),
-          tabBarIcon: ({ color }) => <Ionicons size={24} name="briefcase-outline" color={color} />,
-        })}
-      />
-      <Tabs.Screen
         name="messages"
         options={({ navigation }) => ({
           title: 'Messages',
@@ -96,6 +81,19 @@ export default function TabLayout() {
             </TouchableOpacity>
           ),
           tabBarIcon: ({ color }) => <Ionicons size={24} name="chatbubble-outline" color={color} />,
+        })}
+      />
+      <Tabs.Screen
+        name="jobs"
+        options={({ navigation }) => ({
+          title: 'Jobs',
+          headerShown: true,
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 16 }}>
+              <Ionicons name="arrow-back" size={24} color="black" />
+            </TouchableOpacity>
+          ),
+          tabBarIcon: ({ color }) => <Ionicons size={24} name="briefcase-outline" color={color} />,
         })}
       />
       <Tabs.Screen

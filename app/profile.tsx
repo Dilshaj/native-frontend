@@ -60,7 +60,7 @@ export default function ProfileScreen() {
 
             <SafeAreaView className="flex-1">
                 {/* Header */}
-                <View className={`flex-row items-center justify-between px-4 py-3 ${Platform.OS === 'android' ? 'mt-[30px]' : ''}`}>
+                <View className={`flex-row items-center justify-between px-4 py-3 mt-4 ${Platform.OS === 'android' ? 'mt-[40px]' : ''}`}>
                     <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: iconBg }}>
                         <Ionicons name="arrow-back" size={24} color={textColor} />
                     </TouchableOpacity>
