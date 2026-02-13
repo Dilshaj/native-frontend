@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity, Platform, Dimensions, Image, TextInput, Keyboard, KeyboardAvoidingView } from 'react-native';
+import { Text, View, TouchableOpacity, Platform, Dimensions, Image, TextInput, Keyboard, KeyboardAvoidingView, useColorScheme } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,6 +29,16 @@ export default function SignupScreen() {
     const spacerHeight = useSharedValue(INITIAL_SPACER);
     const scrollRef = useAnimatedRef<Animated.ScrollView>();
     const [scrollPadding, setScrollPadding] = useState(50);
+
+    const colorScheme = useColorScheme();
+    const isDarkMode = colorScheme === 'dark';
+
+    const bg = 'transparent'; // Fix: Always transparent to show layout animations
+    const cardBg = isDarkMode ? '#1f2937' : '#ffffff';
+    const textPrimary = isDarkMode ? '#f3f4f6' : '#111827';
+    const textSecondary = isDarkMode ? '#9ca3af' : '#6b7280';
+    const inputBg = isDarkMode ? 'rgba(255,255,255,0.1)' : '#ffffff';
+    const borderColor = isDarkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb';
 
     // Animation values for OTP section
     const otpHeight = useSharedValue(0);
@@ -111,7 +121,8 @@ export default function SignupScreen() {
     }));
 
     return (
-        <View className="flex-1 bg-transparent">
+        <View className="flex-1" style={{ backgroundColor: bg }}>
+            <StatusBar style={isDarkMode ? 'light' : 'dark'} />
             {/* Main Layout Container */}
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'height' : undefined}
@@ -128,7 +139,7 @@ export default function SignupScreen() {
                 </Animated.View>
 
                 {/* Fixed Card Container */}
-                <View className="flex-1 bg-white rounded-t-[30px] shadow-xl overflow-hidden">
+                <View className="flex-1 rounded-t-[30px] shadow-xl overflow-hidden" style={{ backgroundColor: cardBg }}>
 
                     {/* Internal ScrollView with increased padding */}
                     <Animated.ScrollView
@@ -143,8 +154,8 @@ export default function SignupScreen() {
                     >
 
                         <View className="bg-transparent mb-6">
-                            <Text className="text-3xl font-bold text-gray-900 mb-2">Create Account</Text>
-                            <Text className="text-gray-500 text-base">Please fill in your details to continue</Text>
+                            <Text className="text-3xl font-bold mb-2" style={{ color: textPrimary }}>Create Account</Text>
+                            <Text className="text-base" style={{ color: textSecondary }}>Please fill in your details to continue</Text>
                         </View>
 
                         <View className="gap-4 mb-4">
@@ -154,14 +165,16 @@ export default function SignupScreen() {
                                     <Input
                                         placeholder="First Name"
                                         className="h-12"
-                                        style={{ fontSize: 15 }}
+                                        style={{ fontSize: 15, backgroundColor: inputBg, color: textPrimary, borderColor: borderColor }}
+                                        placeholderTextColor={textSecondary}
                                     />
                                 </View>
                                 <View className="flex-1">
                                     <Input
                                         placeholder="Last Name"
                                         className="h-12"
-                                        style={{ fontSize: 15 }}
+                                        style={{ fontSize: 15, backgroundColor: inputBg, color: textPrimary, borderColor: borderColor }}
+                                        placeholderTextColor={textSecondary}
                                     />
                                 </View>
                             </View>
@@ -171,17 +184,18 @@ export default function SignupScreen() {
                                 autoCapitalize="none"
                                 keyboardType="email-address"
                                 className="h-12"
-                                style={{ fontSize: 15 }}
+                                style={{ fontSize: 15, backgroundColor: inputBg, color: textPrimary, borderColor: borderColor }}
+                                placeholderTextColor={textSecondary}
                             />
 
                             {/* Phone Number with Get OTP */}
-                            <View className={`flex-row items-center border ${isVerified ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white'} rounded-xl h-12 px-4 w-full`}>
+                            <View className={`flex-row items-center border rounded-xl h-12 px-4 w-full`} style={{ borderColor: isVerified ? '#22c55e' : borderColor, backgroundColor: isVerified ? (isDarkMode ? '#064e3b' : '#f0fdf4') : (isDarkMode ? 'transparent' : '#ffffff') }}>
                                 <TextInput
-                                    className="flex-1 text-gray-900 h-full"
+                                    className="flex-1 h-full"
                                     placeholder="Phone Number"
-                                    placeholderTextColor="#9ca3af"
+                                    placeholderTextColor={textSecondary}
                                     keyboardType="phone-pad"
-                                    style={{ fontSize: 15 }}
+                                    style={{ fontSize: 15, color: textPrimary }}
                                     value={phoneNumber}
                                     onChangeText={(val) => setPhoneNumber(val.replace(/[^0-9]/g, '').slice(0, 10))}
                                     maxLength={10}
@@ -203,13 +217,13 @@ export default function SignupScreen() {
 
                             {showOtp && (
                                 <Animated.View style={animatedOtpStyle}>
-                                    <View className="flex-row items-center border border-gray-200 bg-white rounded-xl h-12 px-4 w-full">
+                                    <View className="flex-row items-center border rounded-xl h-12 px-4 w-full" style={{ borderColor: borderColor, backgroundColor: cardBg }}>
                                         <TextInput
-                                            className="flex-1 text-gray-900 h-full"
+                                            className="flex-1 h-full"
                                             placeholder="Enter OTP"
-                                            placeholderTextColor="#9ca3af"
+                                            placeholderTextColor={textSecondary}
                                             keyboardType="number-pad"
-                                            style={{ fontSize: 15 }}
+                                            style={{ fontSize: 15, color: textPrimary }}
                                             value={otp}
                                             onChangeText={(val) => setOtp(val.replace(/[^0-9]/g, '').slice(0, 6))}
                                             maxLength={6}
@@ -237,7 +251,8 @@ export default function SignupScreen() {
                                 placeholder="Password"
                                 isPassword
                                 className="h-12"
-                                style={{ fontSize: 15 }}
+                                style={{ fontSize: 15, backgroundColor: isDarkMode ? 'transparent' : undefined, color: textPrimary, borderColor: borderColor }}
+                                placeholderTextColor={textSecondary}
                             />
                         </View>
 
@@ -247,10 +262,10 @@ export default function SignupScreen() {
                                 onPress={() => setAgreed(!agreed)}
                                 className="flex-row items-center gap-2"
                             >
-                                <View className={`w-5 h-5 rounded mt-0.5 border ${agreed ? 'bg-blue-600 border-blue-600' : 'border-gray-400 bg-white'} justify-center items-center`}>
+                                <View className={`w-5 h-5 rounded mt-0.5 border ${agreed ? 'bg-blue-600 border-blue-600' : 'border-gray-400'} justify-center items-center`} style={!agreed ? { backgroundColor: isDarkMode ? 'transparent' : 'white', borderColor: textSecondary } : {}}>
                                     {agreed && <Ionicons name="checkmark" size={14} color="white" />}
                                 </View>
-                                <Text className="text-gray-600 text-sm mt-0.5">I agree to the <Text className="text-blue-600">Terms and Conditions</Text></Text>
+                                <Text className="text-sm mt-0.5" style={{ color: textSecondary }}>I agree to the <Text className="text-blue-600">Terms and Conditions</Text></Text>
                             </TouchableOpacity>
                         </View>
 
@@ -264,9 +279,9 @@ export default function SignupScreen() {
                         </Button>
 
                         <View className="flex-row items-center mb-6 gap-4">
-                            <View className="flex-1 h-[1px] bg-gray-200" />
-                            <Text className="text-gray-400 text-xs font-bold uppercase tracking-wider">OR CONTINUE WITH</Text>
-                            <View className="flex-1 h-[1px] bg-gray-200" />
+                            <View className="flex-1 h-[1px]" style={{ backgroundColor: borderColor }} />
+                            <Text className="text-xs font-bold uppercase tracking-wider" style={{ color: textSecondary }}>OR CONTINUE WITH</Text>
+                            <View className="flex-1 h-[1px]" style={{ backgroundColor: borderColor }} />
                         </View>
 
                         {/* Google Sign In - Centered Card Style */}
@@ -275,13 +290,15 @@ export default function SignupScreen() {
                             icon={<Image source={require('../../assets/images/google-logo.png')} style={{ width: 24, height: 24 }} />}
                             className="mb-10 shadow-sm"
                             onPress={() => console.log('Google Sign In')}
+                            style={{ backgroundColor: isDarkMode ? '#374151' : 'white', borderColor: borderColor, borderWidth: 1 }}
+                            textStyle={{ color: textPrimary }}
                         >
                             Sign in with Google
                         </Button>
 
                         {/* Add "Already have an account?" Footer just in case */}
                         <View className="flex-row justify-center items-center pb-10">
-                            <Text className="text-gray-600 mr-1 text-base">Already have an account?</Text>
+                            <Text className="mr-1 text-base" style={{ color: textSecondary }}>Already have an account?</Text>
                             <TouchableOpacity onPress={() => router.back()}>
                                 <Text className="text-blue-600 font-bold text-base">Sign in</Text>
                             </TouchableOpacity>

@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, TouchableOpacityProps, View, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, TouchableOpacityProps, View, StyleSheet, StyleProp, TextStyle } from 'react-native';
 import { ReactNode } from 'react';
 
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,9 +8,10 @@ interface ButtonProps extends TouchableOpacityProps {
     children: ReactNode;
     icon?: ReactNode;
     gradientColors?: string[];
+    textStyle?: StyleProp<TextStyle>;
 }
 
-export function Button({ variant = 'primary', children, icon, className, gradientColors, style, ...props }: ButtonProps) {
+export function Button({ variant = 'primary', children, icon, className, gradientColors, style, textStyle, ...props }: ButtonProps) {
     let baseContainerClass = "h-12 rounded-xl w-full overflow-hidden";
     let variantClass = "";
     let textClass = "";
@@ -33,7 +34,7 @@ export function Button({ variant = 'primary', children, icon, className, gradien
     const content = (
         <View style={styles.contentContainer}>
             {icon && <View style={styles.iconContainer}>{icon}</View>}
-            <Text className={textClass}>{children}</Text>
+            <Text className={textClass} style={textStyle}>{children}</Text>
         </View>
     );
 

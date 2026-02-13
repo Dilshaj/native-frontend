@@ -1,42 +1,51 @@
-import { Text, View, ScrollView, SafeAreaView, TouchableOpacity, Dimensions, Platform, Modal, Animated as RNAnimated, DeviceEventEmitter, TextInput, Alert } from 'react-native';
 import { Image } from 'expo-image';
+import { Text, View, ScrollView, TouchableOpacity, useWindowDimensions, Platform, Modal, Animated as RNAnimated, DeviceEventEmitter, TextInput, Alert, StyleSheet, Easing as RNEasing, PanResponder, ViewProps, useColorScheme } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Link, Stack, useNavigation } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState, useEffect, useRef } from 'react';
 import { Video, ResizeMode } from 'expo-av';
-import { useNavigation } from 'expo-router';
+import FeedPost from '../../components/FeedPost'; // Import Custom FeedPost Component
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
+  withSpring,
   withTiming,
+  withRepeat,
+  FadeInDown,
+  FadeInUp,
+  FadeIn,
+  FadeOut,
+  FadeOutDown,
+  FadeOutUp,
   Easing,
-  cancelAnimation
+  cancelAnimation,
+  runOnJS,
+  interpolate,
+  SlideInDown,
+  SlideOutDown
 } from 'react-native-reanimated';
 
-const { width, height } = Dimensions.get('window');
+// Modular Components
+import FeedsView from '../../components/home/FeedsView';
+import FeaturesDrawer from '../../components/home/FeaturesDrawer';
+import SearchView from '../../components/home/SearchView';
+import MainContent from '../../components/home/MainContent';
+import ProfileView from '../../components/profile/ProfileView';
+import EditProfileView from '../../components/profile/EditProfileView';
+import ShareProfileView from '../../components/profile/ShareProfileView';
+import SettingsView from '../../components/profile/SettingsView';
+import EditBioView from '../../components/profile/EditBioView';
+
+
 
 // Sidebar Menu Items
-const MENU_ITEMS = [
-  { id: '1', title: 'AI Resume Builder', icon: 'document-text-outline' },
-  { id: '2', title: 'AI Mock Interview', icon: 'mic-outline' },
-  { id: '3', title: 'AI Grammar', icon: 'text-outline' },
-  { id: '4', title: 'Freelancing', icon: 'briefcase-outline' },
-  { id: '5', title: 'Fund Raising', icon: 'cash-outline' },
-  { id: '6', title: 'Connect with mentors', icon: 'people-outline' },
-  { id: '7', title: 'Notifications', icon: 'notifications-outline' }, // Added at bottom
-];
+// Main App Component
 
 // Mock Data
-const STORIES = [
-  { id: '1', name: 'Sarah K.', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80', seen: false },
-  { id: '2', name: 'Alex M.', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80', seen: false },
-  { id: '3', name: 'Emma L.', image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80', seen: true },
-  { id: '4', name: 'James P.', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80', seen: true },
-  { id: '5', name: 'Zoe R.', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80', seen: false },
-];
+
 
 const POSTS = [
   {
@@ -105,360 +114,56 @@ const POSTS = [
   }
 ];
 
+
+const TOP_SEARCHES = [
+  'Artificial Intelligence', 'Machine Learning', 'Data Science', 'Web Development', 'React Native', 'UI/UX Design'
+];
+
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
 // --- Isolated Sidebar Components to prevent recursion ---
 
-function FeaturesView({ isDarkMode, onHide, menuItems }: { isDarkMode: boolean, onHide: () => void, menuItems: any[] }) {
-  return (
-    <View className="flex-1">
-      {/* Modern Header with proper top spacing */}
-      <View
-        className={`flex-row items-center px-4 pb-4 bg-white border-b border-gray-100 ${Platform.OS === 'android' ? 'pt-14' : 'pt-12'}`}
-      >
-        <TouchableOpacity
-          onPress={onHide}
-          className="w-10 h-10 items-center justify-center rounded-full bg-gray-50 mr-4"
-        >
-          <Ionicons name="chevron-back" size={20} color="#1f2937" />
-        </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-900 tracking-tight">App Features</Text>
-      </View>
 
-      <ScrollView
-        className="flex-1 bg-[#f8f9fa]"
-        contentContainerStyle={{ paddingTop: 16, paddingBottom: 120 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View className="mx-4 bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-sm">
-          {menuItems.map((item, index) => (
-            <TouchableOpacity
-              key={item.id}
-              className={`flex-row items-center p-5 ${index !== menuItems.length - 1 ? 'border-b border-gray-50' : ''}`}
-            >
-              <View className="w-10 h-10 rounded-2xl bg-gray-50 justify-center items-center mr-4">
-                <Ionicons name={item.icon as any} size={20} color="#6b7280" />
-              </View>
-              <Text className="text-[15px] font-bold text-gray-800 flex-1">{item.title}</Text>
-              <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View className="mt-8 px-6">
-          <View className="bg-indigo-50 p-6 rounded-[24px] border border-indigo-100">
-            <Text className="text-indigo-900 font-bold text-base mb-1">Need Help?</Text>
-            <Text className="text-indigo-600 text-xs leading-relaxed mb-4">Our support team is available 24/7 to help you with any issues.</Text>
-            <TouchableOpacity className="bg-white px-4 py-2.5 rounded-xl self-start border border-indigo-100">
-              <Text className="text-indigo-600 font-bold text-[12px]">Contact Support</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
-    </View>
-  );
-}
-
-function SettingsView({ isDarkMode, onHide, onEditProfile }: { isDarkMode: boolean, onHide: () => void, onEditProfile: () => void }) {
-  const iconBgColor = isDarkMode ? 'rgba(168, 85, 247, 0.15)' : '#f3f0ff';
-
-  const handleImageUpload = () => {
-    Alert.alert(
-      "Profile Photo",
-      "Choose an option to update your profile photo",
-      [
-        { text: "Take Photo", onPress: () => console.log("Camera opened") },
-        { text: "Choose from Gallery", onPress: () => console.log("File manager opened") },
-        { text: "Cancel", style: "cancel" }
-      ]
-    );
-  };
-
-  return (
-    <View className="flex-1">
-      {/* Modern Settings Header */}
-      <View
-        className={`flex-row items-center px-4 pb-4 bg-white border-b border-gray-100 ${Platform.OS === 'android' ? 'pt-14' : 'pt-12'}`}
-      >
-        <TouchableOpacity
-          onPress={onHide}
-          className="w-10 h-10 items-center justify-center rounded-full bg-gray-50 mr-4"
-        >
-          <Ionicons name="chevron-back" size={20} color="#1f2937" />
-        </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-900 tracking-tight">Settings</Text>
-      </View>
-
-      <ScrollView
-        className="flex-1 bg-[#f8fbff]"
-        contentContainerStyle={{ paddingBottom: 150 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* User Quick Profile Card - bg-white removed */}
-        <View className="px-6 py-6 flex-row items-center gap-4 mb-2">
-          <View className="relative">
-            <View className="w-16 h-16 rounded-full bg-white items-center justify-center border border-gray-100 shadow-sm">
-              <Ionicons name="person" size={32} color="black" />
-            </View>
-            <TouchableOpacity
-              onPress={handleImageUpload}
-              className="absolute -bottom-0.5 -right-0.5 w-8 h-8 bg-white rounded-full items-center justify-center shadow-lg border-2 border-white"
-            >
-              <Ionicons name="camera" size={16} color="#374151" />
-            </TouchableOpacity>
-          </View>
-          <View className="flex-1">
-            <Text className="text-xl font-bold text-gray-900">V. Narasimha</Text>
-            <View className="flex-row items-center mt-0.5">
-              <View className="bg-emerald-100 px-2 py-0.5 rounded-full mr-2">
-                <Text className="text-emerald-700 text-[9px] font-bold">ACTIVE STUDENT</Text>
-              </View>
-              <Text className="text-gray-400 text-xs font-medium">79958 53246</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Premium Dashboard Cards - bg-white removed */}
-        <View className="flex-row justify-between px-4 py-3 gap-2 mb-4">
-          {[
-            { title: 'My Courses', icon: 'book', color: '#3b82f6', sub: '12 Active' },
-            { title: 'AI Tools', icon: 'sparkles', color: '#a855f7', sub: 'Pro Access' },
-            { title: 'Certificates', icon: 'trophy', color: '#f59e0b', sub: '4 Earned' }
-          ].map((item, i) => (
-            <TouchableOpacity key={i} className="flex-1 h-[100px] bg-white border border-gray-100 rounded-2xl items-center justify-center shadow-sm p-2">
-              <View className="w-9 h-9 rounded-xl items-center justify-center mb-2" style={{ backgroundColor: `${item.color}10` }}>
-                <Ionicons name={item.icon as any} size={18} color={item.color} />
-              </View>
-              <Text className="text-[11px] font-bold text-gray-800 text-center">{item.title}</Text>
-              <Text className="text-[9px] text-gray-400 mt-0.5">{item.sub}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Your Information Section */}
-        <View className="mb-6">
-          <Text className="px-6 mb-3 text-[11px] font-bold text-gray-900 uppercase tracking-[1.5px]">Your Information</Text>
-          <View className="bg-white rounded-[24px] mx-4 overflow-hidden border border-gray-100 shadow-sm">
-            {[
-              { icon: 'currency-inr', title: 'Your Refunds', library: 'MaterialCommunityIcons' },
-              { icon: 'help-circle-outline', title: 'Help & Support' },
-              { icon: 'person-outline', title: 'Profile' },
-              { icon: 'gift-outline', title: 'Rewards' },
-              { icon: 'card-outline', title: 'Payment Management' },
-            ].map((item, index, arr) => (
-              <View key={index}>
-                <TouchableOpacity className="flex-row items-center px-6 py-4">
-                  <View className="w-9 h-9 rounded-xl bg-gray-50 items-center justify-center mr-4">
-                    {item.library === 'MaterialCommunityIcons' ? (
-                      <MaterialCommunityIcons name={item.icon as any} size={18} color="#6b7280" />
-                    ) : (
-                      <Ionicons name={item.icon as any} size={18} color="#6b7280" />
-                    )}
-                  </View>
-                  <Text className="text-sm font-semibold text-gray-800 flex-1">{item.title}</Text>
-                  <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
-                </TouchableOpacity>
-                {index !== arr.length - 1 && (
-                  <View className="mx-6" style={{ borderBottomWidth: 1, borderBottomColor: '#f1f5f9', borderStyle: 'dashed' }} />
-                )}
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Other Information Section */}
-        <View className="mb-6">
-          <Text className="px-6 mb-3 text-[11px] font-bold text-gray-900 uppercase tracking-[1.5px]">Other Information</Text>
-          <View className="bg-white rounded-[24px] mx-4 overflow-hidden border border-gray-100 shadow-sm">
-            {[
-              { icon: 'notifications-outline', title: 'Notifications' },
-              { icon: 'lock-closed-outline', title: 'Privacy & Security' },
-              { icon: 'document-text-outline', title: 'Legal & Policy' },
-            ].map((item, index, arr) => (
-              <View key={index}>
-                <TouchableOpacity className="flex-row items-center px-6 py-4">
-                  <View className="w-9 h-9 rounded-xl bg-gray-50 items-center justify-center mr-4">
-                    <Ionicons name={item.icon as any} size={18} color="#6b7280" />
-                  </View>
-                  <Text className="text-sm font-semibold text-gray-700 flex-1">{item.title}</Text>
-                  <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
-                </TouchableOpacity>
-                {index !== arr.length - 1 && (
-                  <View className="mx-6" style={{ borderBottomWidth: 1, borderBottomColor: '#f1f5f9', borderStyle: 'dashed' }} />
-                )}
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Compact Sign Out */}
-        <View className="px-6 mb-4">
-          <TouchableOpacity
-            className="w-full h-14 rounded-2xl bg-rose-50 flex-row items-center justify-center border border-rose-100"
-            onPress={() => console.log('Logout')}
-          >
-            <View className="mr-2">
-              <Ionicons name="log-out-outline" size={18} color="#e11d48" />
-            </View>
-            <Text className="text-base font-bold text-rose-600">Sign Out</Text>
-          </TouchableOpacity>
-          <Text className="mt-8 text-gray-300 text-[10px] text-center mb-10 font-bold uppercase tracking-widest">Eduprova v1.0.4.premium</Text>
-        </View>
-      </ScrollView>
-    </View>
-  );
-}
-
-function EditProfileView({ isDarkMode, onBack }: { isDarkMode: boolean, onBack: () => void }) {
-  return (
-    <View className="flex-1 bg-white">
-      {/* Header */}
-      <View className="flex-row items-center px-4 py-4 pt-8 bg-white">
-        <TouchableOpacity onPress={onBack} className="w-10 h-10 items-center justify-center">
-          <Ionicons name="arrow-back" size={28} color="#333" />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
-        {/* Avatar */}
-        <View className="items-center mb-8">
-          <View className="relative">
-            <View className="w-36 h-36 rounded-full bg-gray-50 border-4 border-white shadow-xl items-center justify-center">
-              <Ionicons name="person" size={80} color="#e5e7eb" />
-            </View>
-            <TouchableOpacity className="absolute bottom-1 right-2 w-10 h-10 bg-white rounded-full items-center justify-center shadow-lg border border-gray-100">
-              <Ionicons name="pencil" size={20} color="#333" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View className="px-5">
-          {/* Basic Info Card */}
-          <View className="bg-white rounded-[32px] p-7 border border-gray-100 shadow-sm mb-6">
-            <Text className="text-2xl font-bold text-gray-900 mb-8">Basic information</Text>
-
-            {[
-              { label: 'Name', placeholder: 'Enter your name' },
-              { label: 'Phone number', value: '+91 7995853246', sub: 'The phone number associated with your account cannot be modified' },
-              { label: 'Email', placeholder: 'Enter your email' },
-              { label: 'Gender', placeholder: 'Select', isPicker: true },
-              { label: 'Birthday', placeholder: 'DD / MM / YY' },
-              { label: 'Anniversary', placeholder: 'DD / MM / YY' },
-            ].map((field, i) => (
-              <View key={i} className="mb-6">
-                <Text className="text-[13px] font-bold text-gray-500 mb-2.5 ml-1">{field.label}</Text>
-                {field.isPicker || field.value ? (
-                  <View className="bg-white border border-gray-100 rounded-2xl h-15 px-5 flex-row items-center justify-between shadow-sm">
-                    <Text className={`text-[16px] font-medium ${field.value ? 'text-gray-900' : 'text-gray-300'}`}>{field.value || field.placeholder}</Text>
-                    {field.isPicker && <Ionicons name="chevron-down" size={18} color="#ccc" />}
-                  </View>
-                ) : (
-                  <TextInput
-                    placeholder={field.placeholder}
-                    className="bg-white border border-gray-100 rounded-2xl h-15 px-5 text-gray-900 shadow-sm"
-                    placeholderTextColor="#d1d5db"
-                    style={{ fontSize: 16, fontWeight: '500' }}
-                  />
-                )}
-                {field.sub && (
-                  <View className="flex-row items-start mt-2.5 ml-1 pr-4">
-                    <Ionicons name="information-circle-outline" size={16} color="#9ca3af" className="mr-2 mt-0.5" />
-                    <Text className="text-[12px] text-gray-400 leading-tight flex-1">{field.sub}</Text>
-                  </View>
-                )}
-              </View>
-            ))}
-          </View>
-
-          {/* Invoice Info Card */}
-          <View className="bg-white rounded-[32px] p-7 border border-gray-100 shadow-sm mb-6">
-            <Text className="text-2xl font-bold text-gray-900 mb-8">Invoice details</Text>
-            <View className="mb-2">
-              <Text className="text-[13px] font-bold text-gray-500 mb-2.5 ml-1">State</Text>
-              <TouchableOpacity className="bg-white border border-gray-100 rounded-2xl h-15 px-5 flex-row items-center justify-between shadow-sm">
-                <Text className="text-gray-300 text-[16px] font-medium">Select a billing state</Text>
-                <Ionicons name="chevron-down" size={18} color="#ccc" />
-              </TouchableOpacity>
-              <Text className="text-[11px] text-gray-400 mt-2.5 ml-1 italic">This is required to generate invoice</Text>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* Button fixed at bottom above scroll */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white/95 px-6 py-5 border-t border-gray-50 shadow-lg">
-        <TouchableOpacity className="w-full h-15 bg-gray-200 rounded-2xl items-center justify-center">
-          <Text className="text-base font-bold text-gray-400 uppercase tracking-widest">Update profile</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
-
-function StoryItem({ story, isDarkMode }: { story: any, isDarkMode: boolean }) {
-  const rotation = useSharedValue(0);
-
-  useEffect(() => {
-    if (!story.seen) {
-      rotation.value = withRepeat(
-        withTiming(360, {
-          duration: 4000,
-          easing: Easing.linear,
-        }),
-        -1,
-        false
-      );
-    } else {
-      cancelAnimation(rotation);
-      rotation.value = 0;
-    }
-  }, [story.seen]);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ rotate: `${rotation.value}deg` }],
-    };
-  });
-
-  return (
-    <TouchableOpacity className="mr-3 w-[90px] h-[120px]">
-      <View className={`flex-1 rounded-[18px] overflow-hidden relative p-1 justify-center items-center border ${isDarkMode ? 'border-[#1f1f2e]' : 'border-white'}`}>
-        {!story.seen ? (
-          <AnimatedLinearGradient
-            colors={['#3b82f6', '#d946ef', '#ec4899', '#3b82f6']}
-            className="absolute w-[200px] h-[200px] -top-10 -left-[55px]"
-            style={animatedStyle}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          />
-        ) : (
-          <View className={`absolute w-full h-full ${isDarkMode ? 'bg-[#374151]' : 'bg-[#e5e7eb]'}`} />
-        )}
-
-        <View className={`w-[86px] h-[116px] rounded-2xl overflow-hidden relative ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
-          <Image source={{ uri: story.image }} className="w-full h-full" />
-          <View className="absolute bottom-0 left-0 right-0 p-2 pt-5">
-            <Text className="text-white text-[11px] font-bold shadow-black" style={{ textShadowRadius: 10, textShadowOffset: { width: -1, height: 1 } }}>{story.name}</Text>
-          </View>
-
-          {story.seen && (
-            <View className="absolute top-1.5 right-1.5 bg-[#22c55e] w-4 h-4 rounded-full justify-center items-center border-[1.5px] border-white">
-              <Ionicons name="checkmark-sharp" size={10} color="white" />
-            </View>
-          )}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-}
 
 export default function HomeScreen() {
+  const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const systemColorScheme = useColorScheme();
+  const [isDarkMode, setIsDarkMode] = useState(systemColorScheme === 'dark');
+
+  // Sync with system theme changes
+  useEffect(() => {
+    const isDark = systemColorScheme === 'dark';
+    setIsDarkMode(isDark);
+    DeviceEventEmitter.emit('themeChanged', isDark);
+  }, [systemColorScheme]);
+
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [drawerType, setDrawerType] = useState<'features' | 'settings' | 'edit-profile'>('settings');
+  const isSidebarOpenRef = useRef(false);
+  const [drawerType, setDrawerType] = useState<'features' | 'profile' | 'edit-profile' | 'search' | 'feeds' | 'share-profile' | 'settings' | 'edit-bio'>('feeds');
   const navigation = useNavigation();
-  const sidebarAnim = useRef(new RNAnimated.Value(width)).current; // Start off-screen - Full Width
+  const isTablet = width >= 768;
+  const drawerWidth = isTablet ? 400 : width * 0.85;
+  const sidebarAnim = useSharedValue(-drawerWidth); // Initialize with exact drawerWidth
+
+  // Sync sidebarAnim if drawerWidth changes (e.g. orientation)
+  useEffect(() => {
+    if (!isSidebarOpenRef.current) {
+      sidebarAnim.value = -drawerWidth;
+    }
+  }, [drawerWidth]);
+
+  // Custom Search Transition State
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchAnim = useSharedValue(width); // Reanimated Shared Value
+  const mainAnim = useSharedValue(0); // Reanimated Shared Value
+  const mainScale = useSharedValue(1); // Reanimated Shared Value for Depth Effect
+  const [triggerFocus, setTriggerFocus] = useState(false);
+  const [userBio, setUserBio] = useState('');
+
+  // Profile Transition State
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileAnim = useSharedValue(width);
 
   // Scroll Tracking for Tab Bar
   const lastContentOffset = useRef(0);
@@ -473,48 +178,161 @@ export default function HomeScreen() {
   const iconColor = isDarkMode ? '#fff' : '#374151';
   const sidebarBg = isDarkMode ? '#111827' : '#fff';
 
+  // Sidebar Animation Styles
+  const sidebarStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: sidebarAnim.value }]
+  }));
 
-  // Sidebar Animation - Simplified entry/exit
-  useEffect(() => {
-    if (isSidebarOpen) {
-      RNAnimated.timing(sidebarAnim, {
-        toValue: 0,
-        duration: 400,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [isSidebarOpen]);
+  const mainStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: mainAnim.value },
+      { scale: mainScale.value }
+    ]
+  }));
 
-  const hideSidebar = () => {
-    RNAnimated.timing(sidebarAnim, {
-      toValue: width,
-      duration: 400,
-      useNativeDriver: true,
-    }).start(() => {
-      setSidebarOpen(false);
-    });
+  const searchStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: searchAnim.value }]
+  }));
+
+  const profileStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: profileAnim.value }],
+  }));
+
+  const overlayStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(mainAnim.value, [0, drawerWidth], [0, 0.10])
+  }));
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        if (!isSidebarOpenRef.current && gestureState.dx > 10 && Math.abs(gestureState.dy) < 30) return true;
+        if (isSidebarOpenRef.current && gestureState.dx < -10) return true;
+        return false;
+      },
+      onMoveShouldSetPanResponderCapture: (_, gestureState) => {
+        if (!isSidebarOpenRef.current && gestureState.dx > 20 && Math.abs(gestureState.dy) < 20) return true;
+        if (isSidebarOpenRef.current && gestureState.dx < -10) return true;
+        return false;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (!isSidebarOpenRef.current) {
+          const moveValue = Math.min(drawerWidth, Math.max(0, gestureState.dx));
+          sidebarAnim.value = -drawerWidth + moveValue;
+          mainAnim.value = moveValue;
+        } else {
+          const moveValue = Math.min(drawerWidth, Math.max(0, drawerWidth + gestureState.dx));
+          sidebarAnim.value = -drawerWidth + moveValue;
+          mainAnim.value = moveValue;
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        const threshold = 60;
+        if (!isSidebarOpenRef.current) {
+          if (gestureState.dx > threshold) {
+            openSidebar();
+          } else {
+            closeSidebar();
+          }
+        } else {
+          if (gestureState.dx < -threshold) {
+            closeSidebar();
+          } else {
+            openSidebar();
+          }
+        }
+      },
+    })
+  ).current;
+
+  // Sidebar Logic
+  const finalizeClose = () => {
+    setSidebarOpen(false);
+    isSidebarOpenRef.current = false;
   };
 
-  const toggleSidebar = (type?: 'features' | 'settings' | 'edit-profile') => {
+  const openSidebar = (type?: 'features' | 'profile' | 'edit-profile' | 'search' | 'feeds' | 'share-profile' | 'settings' | 'edit-bio') => {
+    if (type) setDrawerType(type);
+    setSidebarOpen(true);
+    isSidebarOpenRef.current = true;
+    const CONFIG = { duration: 650, easing: Easing.bezier(0.4, 0, 0.2, 1) };
+    sidebarAnim.value = withTiming(0, CONFIG);
+    mainAnim.value = withTiming(drawerWidth, CONFIG);
+  };
+
+  const closeSidebar = () => {
+    const CONFIG = { duration: 650, easing: Easing.bezier(0.4, 0, 0.2, 1) };
+    sidebarAnim.value = withTiming(-drawerWidth, CONFIG, (finished) => {
+      if (finished) {
+        runOnJS(finalizeClose)();
+      }
+    });
+    mainAnim.value = withTiming(0, CONFIG);
+  };
+
+  const toggleSidebar = (type?: 'features' | 'profile' | 'edit-profile' | 'search' | 'feeds' | 'share-profile') => {
     if (isSidebarOpen) {
-      // If clicking the same type, close it. If clicking different type, switch it.
       if (type && type !== drawerType) {
         setDrawerType(type);
       } else {
-        hideSidebar();
+        closeSidebar();
       }
     } else {
-      if (type) setDrawerType(type);
-      setSidebarOpen(true);
+      openSidebar(type);
+    }
+  };
+
+  // Custom Search Toggle
+  const toggleSearch = () => {
+    const CONFIG = { duration: 650, easing: Easing.bezier(0.4, 0.0, 0.2, 1) };
+
+    if (isSearchOpen) {
+      mainAnim.value = withTiming(0, CONFIG);
+      mainScale.value = withTiming(1, CONFIG);
+      searchAnim.value = withTiming(width, CONFIG, () => {
+        runOnJS(setIsSearchOpen)(false);
+      });
+    } else {
+      setIsSearchOpen(true);
+      mainAnim.value = withTiming(-width * 0.25, CONFIG);
+      mainScale.value = withTiming(0.95, CONFIG);
+      searchAnim.value = withTiming(0, CONFIG);
+    }
+  };
+
+  // Custom Profile Toggle
+  const toggleProfile = () => {
+    const CONFIG = { duration: 650, easing: Easing.bezier(0.4, 0.0, 0.2, 1) };
+
+    if (isProfileOpen) {
+      mainAnim.value = withTiming(0, CONFIG);
+      mainScale.value = withTiming(1, CONFIG);
+      profileAnim.value = withTiming(width, CONFIG, () => {
+        runOnJS(setIsProfileOpen)(false);
+      });
+    } else {
+      setIsProfileOpen(true);
+      mainAnim.value = withTiming(-width * 0.25, CONFIG);
+      mainScale.value = withTiming(0.95, CONFIG);
+      profileAnim.value = withTiming(0, CONFIG);
     }
   };
 
   useEffect(() => {
-    const subscription = DeviceEventEmitter.addListener('toggleSidebar', () => {
+    const sidebarSub = DeviceEventEmitter.addListener('toggleSidebar', () => {
       toggleSidebar('features');
     });
-    return () => subscription.remove();
-  }, [isSidebarOpen, drawerType]);
+    const profileSub = DeviceEventEmitter.addListener('toggleProfile', () => {
+      toggleProfile();
+    });
+    const closeProfileSub = DeviceEventEmitter.addListener('closeProfile', () => {
+      if (isProfileOpen) toggleProfile();
+    });
+    return () => {
+      sidebarSub.remove();
+      profileSub.remove();
+      closeProfileSub.remove();
+    };
+  }, [isSidebarOpen, drawerType, isProfileOpen]);
 
   const toggleTheme = () => {
     const newMode = !isDarkMode;
@@ -522,302 +340,208 @@ export default function HomeScreen() {
     DeviceEventEmitter.emit('themeChanged', newMode);
   };
 
-  // Scroll Handler with debounce or threshold
   const handleScroll = (event: any) => {
     const currentOffset = event.nativeEvent.contentOffset.y;
-    const isScrollingDown = currentOffset > 0 && currentOffset > lastContentOffset.current;
+    const diff = currentOffset - lastContentOffset.current;
 
-    if (isScrollingDown && isTabBarVisible.current && currentOffset > 50) {
-      navigation.setOptions({ tabBarStyle: { display: 'none' } });
+    // Ignore bounce effects (iOS)
+    if (currentOffset <= 0 || currentOffset + height >= event.nativeEvent.contentSize.height) {
+      lastContentOffset.current = currentOffset;
+      return;
+    }
+
+    if (diff > 20 && isTabBarVisible.current) {
+      // Scroll Down -> Hide Tab Bar
+      DeviceEventEmitter.emit('toggleTabBar', false);
       isTabBarVisible.current = false;
-    } else if (!isScrollingDown && !isTabBarVisible.current) {
-      navigation.setOptions({
-        tabBarStyle: {
-          display: 'flex',
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          elevation: 0,
-          backgroundColor: isDarkMode ? 'transparent' : '#ffffff',
-          borderTopWidth: 0,
-          height: Platform.OS === 'android' ? 95 : 70,
-          paddingBottom: Platform.OS === 'android' ? 35 : 10,
-        }
-      });
+    } else if (diff < -20 && !isTabBarVisible.current) {
+      // Scroll Up -> Show Tab Bar
+      DeviceEventEmitter.emit('toggleTabBar', true);
       isTabBarVisible.current = true;
     }
+
     lastContentOffset.current = currentOffset;
   };
 
   return (
-    <View className="flex-1">
-      {isDarkMode ? (
-        <LinearGradient
-          colors={['#4a044e', '#2e1065', '#172554', '#000000']}
-          locations={[0, 0.3, 0.6, 1]}
-          className="flex-1 bg-white"
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 0.3 }}
-        >
-          <StatusBar style="light" />
-          <SafeAreaView className="flex-1">
-            <MainContent
-              headerBg={headerBg}
-              iconColor={iconColor}
-              handleScroll={handleScroll}
-              toggleTheme={toggleTheme}
-              toggleSidebar={toggleSidebar}
-              textPrimary={textPrimary}
-              textSecondary={textSecondary}
-              cardBg={cardBg}
-              cardBorder={cardBorder}
-              isDarkMode={isDarkMode}
-              navigation={navigation}
-            />
-          </SafeAreaView>
-        </LinearGradient>
-      ) : (
-        <View className="flex-1 bg-white">
-          <StatusBar style="dark" />
-          <SafeAreaView className="flex-1">
-            <MainContent
-              headerBg={headerBg}
-              iconColor={iconColor}
-              handleScroll={handleScroll}
-              toggleTheme={toggleTheme}
-              toggleSidebar={toggleSidebar}
-              textPrimary={textPrimary}
-              textSecondary={textSecondary}
-              cardBg={cardBg}
-              cardBorder={cardBorder}
-              isDarkMode={isDarkMode}
-              navigation={navigation}
-            />
-          </SafeAreaView>
-        </View>
-      )}
-
-      {/* Sidebar Modal (Drawer) */}
-      {isSidebarOpen && (
-        <View className="absolute inset-0 z-[1000] flex-row">
-          <TouchableOpacity className="absolute inset-0 bg-black/5" onPress={hideSidebar} />
-          <RNAnimated.View
-            className="w-full h-full absolute right-0 top-0 bottom-0 shadow-xl"
-            style={{
-              backgroundColor: isDarkMode ? '#111827' : '#f8f9fa',
-              transform: [{ translateX: sidebarAnim }]
-            }}
-          >
-            <SafeAreaView className="flex-1">
-              {drawerType === 'features' ? (
-                <FeaturesView
-                  isDarkMode={isDarkMode}
-                  onHide={hideSidebar}
-                  menuItems={MENU_ITEMS}
-                />
-              ) : drawerType === 'settings' ? (
-                <SettingsView
-                  isDarkMode={isDarkMode}
-                  onHide={hideSidebar}
-                  onEditProfile={() => setDrawerType('edit-profile')}
-                />
-              ) : (
-                <EditProfileView
-                  isDarkMode={isDarkMode}
-                  onBack={() => setDrawerType('settings')}
-                />
-              )}
-            </SafeAreaView>
-          </RNAnimated.View>
-        </View>
-      )}
-    </View>
-  );
-}
-
-// Separate component for home screen body to avoid deep nesting and re-renders
-function MainContent({
-  headerBg,
-  iconColor,
-  handleScroll,
-  toggleTheme,
-  toggleSidebar,
-  textPrimary,
-  textSecondary,
-  cardBg,
-  cardBorder,
-  isDarkMode,
-  navigation
-}: any) {
-  return (
-    <View className="flex-1">
+    <View className="flex-1" style={{ backgroundColor: isDarkMode ? '#000000' : '#ffffff' }} {...panResponder.panHandlers}>
+      {/* Sidebar Modal (Drawer) - Always mounted for smoothness */}
       <View
-        className={`flex-row justify-between items-center px-4 py-3 border-b ${Platform.OS === 'android' ? 'mt-[30px]' : ''}`}
-        style={{ backgroundColor: headerBg, borderBottomColor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f3f4f6' }}
+        className="absolute left-0 top-0 bottom-0 z-[1000] shadow-2xl"
+        style={{ width: drawerWidth }}
+        pointerEvents={isSidebarOpen ? 'auto' : 'none'}
       >
-        <View className="flex-row items-center gap-1.5">
-          <Image
-            source={require('../../assets/images/Eduprova logo (2).png')}
-            style={{ width: 14, height: 14 }}
-            contentFit="contain"
-          />
-          <Image
-            source={require('../../assets/images/eduprova_logo copy.png')}
-            style={{ width: 70, height: 18, marginTop: 2 }}
-            contentFit="contain"
-          />
-        </View>
-        <View className="flex-row items-center gap-2">
-          <TouchableOpacity onPress={toggleTheme}>
-            <Ionicons name={isDarkMode ? "sunny-outline" : "moon-outline"} size={24} color={iconColor} />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Ionicons name="search-outline" size={24} color={iconColor} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => toggleSidebar('settings')}
-            className={`w-10 h-10 rounded-full justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50 border border-gray-100'}`}
-          >
-            <Ionicons name="person" size={20} color={isDarkMode ? '#fff' : '#374151'} />
-          </TouchableOpacity>
-        </View>
+        <Animated.View
+          className="flex-1"
+          {...panResponder.panHandlers}
+          style={[{
+            backgroundColor: isDarkMode ? '#111827' : '#ffffff',
+          }, sidebarStyle]}
+        >
+          <SafeAreaView className="flex-1">
+            {drawerType === 'features' ? (
+              <FeaturesDrawer
+                isDarkMode={isDarkMode}
+                onHide={closeSidebar}
+                menuItems={[
+                  { id: '1', title: 'AI Resume Builder', icon: 'document-text-outline', color: '#3b82f6' },
+                  { id: '2', title: 'AI Mock Interview', icon: 'mic-outline', color: '#a855f7' },
+                  { id: '3', title: 'AI Grammar', icon: 'text-outline', color: '#ec4899' },
+                  { id: '4', title: 'Freelancing', icon: 'briefcase-outline', color: '#f59e0b' },
+                  { id: '5', title: 'Fund Raising', icon: 'cash-outline', color: '#10b981' },
+                  { id: '6', title: 'Connect with mentors', icon: 'people-outline', color: '#6366f1' },
+                  { id: '7', title: 'Notifications', icon: 'notifications-outline', color: '#64748b' },
+                ]}
+              />
+            ) : drawerType === 'search' ? (
+              <SearchView
+                isDarkMode={isDarkMode}
+                onHide={closeSidebar}
+                shouldFocus={false}
+              />
+            ) : (
+              <FeedsView
+                isDarkMode={isDarkMode}
+                onHide={closeSidebar}
+              />
+            )}
+          </SafeAreaView>
+        </Animated.View>
       </View>
 
-      <ScrollView
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        contentContainerStyle={{ paddingTop: 16, paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
+      {/* Main Content with Parallax Push Animation */}
+      <Animated.View className="flex-1 overflow-hidden" style={[mainStyle, { width: width }]}>
+        <View className={`flex-1 ${isDarkMode ? '' : 'bg-white'}`}>
+          {isDarkMode && (
+            <LinearGradient
+              colors={['#4a044e', '#2e1065', '#172554', '#000000']}
+              locations={[0, 0.3, 0.6, 1]}
+              className="absolute inset-0"
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 0.3 }}
+            />
+          )}
+          <StatusBar style={isDarkMode ? 'light' : 'dark'} />
+
+          {/* Clickable Overlay to Dim when Sidebar Open */}
+          <Animated.View
+            className="absolute inset-0 z-[999]"
+            style={[{ backgroundColor: '#000' }, overlayStyle]}
+            pointerEvents={isSidebarOpen ? 'auto' : 'none'}
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              className="flex-1"
+              onPress={closeSidebar}
+            />
+          </Animated.View>
+
+          <SafeAreaView className="flex-1">
+            <MainContent
+              headerBg={headerBg}
+              iconColor={iconColor}
+              handleScroll={handleScroll}
+              toggleTheme={toggleTheme}
+              toggleSidebar={toggleSidebar}
+              onSearch={toggleSearch}
+              textPrimary={textPrimary}
+              textSecondary={textSecondary}
+              cardBg={cardBg}
+              cardBorder={cardBorder}
+              isDarkMode={isDarkMode}
+              navigation={navigation}
+              mainAnim={mainAnim}
+              drawerWidth={drawerWidth}
+            />
+          </SafeAreaView>
+        </View>
+      </Animated.View>
+
+      {/* Dedicated Search Overlay */}
+      {isSearchOpen && (
+        <Animated.View
+          className="absolute inset-0 z-[2000]"
+          style={searchStyle}
+        >
+          <SearchView isDarkMode={isDarkMode} onHide={toggleSearch} shouldFocus={triggerFocus} />
+        </Animated.View>
+      )}
+
+      {/* Dedicated Profile Overlay */}
+      {/* Optimized: Always mounted to prevent lag */}
+      <Animated.View
+        className="absolute inset-0 z-[2100]"
+        style={profileStyle}
+        pointerEvents={isProfileOpen ? 'auto' : 'none'}
       >
-        <View className={`mx-4 h-[180px] rounded-[20px] overflow-hidden mb-6 ${isDarkMode ? 'bg-[#1f1f2e]' : 'bg-[#f1f5f9]'}`}>
-          <Video
-            className="w-full h-full"
-            source={require('@/assets/images/video.mp4')}
-            useNativeControls={false}
-            resizeMode={ResizeMode.COVER}
-            isLooping
-            shouldPlay
-            isMuted
+        <View className="flex-1 bg-white">
+          <ProfileView
+            isDarkMode={isDarkMode}
+            onEditProfile={() => setDrawerType('edit-profile')}
+            onShareProfile={() => setDrawerType('share-profile')}
+            onSettings={() => setDrawerType('settings')}
           />
-        </View>
 
-        <View className="mb-6">
-          <View className="flex-row justify-between items-center px-4 mb-4">
-            <View className="flex-row items-center gap-2">
-              <View className="w-1 h-5 bg-[#3b82f6] rounded-sm" />
-              <Text className="text-lg font-bold" style={{ color: textPrimary }}>AI Stories</Text>
+          {drawerType === 'share-profile' && (
+            <View className="absolute inset-0 z-[2200]">
+              <ShareProfileView
+                isDarkMode={isDarkMode}
+                onClose={() => setDrawerType('profile')}
+              />
             </View>
-            <TouchableOpacity>
-              <Text className="text-[#0ea5e9] font-semibold text-sm">See All <Ionicons name="chevron-forward" size={12} /></Text>
-            </TouchableOpacity>
-          </View>
+          )}
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="pl-4" contentContainerStyle={{ paddingRight: 16, paddingTop: 12 }}>
-            <TouchableOpacity className={`w-[90px] h-[120px] rounded-2xl border border-dashed justify-center items-center mr-3 relative`} style={{ borderColor: isDarkMode ? '#4b5563' : '#e5e7eb' }}>
-              <View className="items-center gap-2">
-                <LinearGradient
-                  colors={['#3b82f6', '#8b5cf6']}
-                  className="w-12 h-12 rounded-full justify-center items-center"
-                >
-                  <Ionicons name="add" size={24} color="white" />
-                </LinearGradient>
-                <Text className="text-xs font-semibold" style={{ color: textSecondary }}>Create</Text>
-              </View>
-              <View className="absolute -top-2 -right-2 bg-[#3b82f6] px-2 py-0.5 rounded-[10px]">
-                <Text className="text-white text-[10px] font-bold">New</Text>
-              </View>
-            </TouchableOpacity>
-
-            {STORIES.map((story) => (
-              <StoryItem key={story.id} story={story} isDarkMode={isDarkMode} />
-            ))}
-          </ScrollView>
-        </View>
-
-        <View className="pb-5">
-          <View className="flex-row justify-between items-center px-4 mb-4">
-            <View className="flex-row items-center gap-2">
-              <View className="w-1 h-5 rounded-sm bg-[#d946ef]" />
-              <Text className="text-lg font-bold" style={{ color: textPrimary }}>Your Feed</Text>
+          {drawerType === 'settings' && (
+            <View className="absolute inset-0 z-[2400]">
+              <SettingsView
+                isDarkMode={isDarkMode}
+                onBack={() => setDrawerType('profile')}
+              />
             </View>
-            <View className={`flex-row p-0.5 rounded-lg ${isDarkMode ? 'bg-[#1f1f2e]' : 'bg-[#f3f4f6]'}`}>
-              <TouchableOpacity className={`px-3 py-1.5 rounded-md ${isDarkMode ? 'bg-[#0f766e]' : 'bg-[#ccfbf1]'}`}>
-                <Text className={`text-xs font-semibold ${isDarkMode ? 'text-[#ccfbf1]' : 'text-[#0f766e]'}`}>Latest</Text>
-              </TouchableOpacity>
-              <TouchableOpacity className="px-3 py-1.5 rounded-md">
-                <Text className="text-xs font-semibold" style={{ color: textSecondary }}>Trending</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View className="px-4 gap-5">
-            {POSTS.map((post) => (
-              <View key={post.id} className="rounded-2xl border p-4 shadow-sm elevation-2" style={{ backgroundColor: cardBg, borderColor: cardBorder }}>
-                <View className="flex-row mb-3">
-                  <Image source={{ uri: post.avatar }} className="w-11 h-11 rounded-full mr-3" />
-                  <View className="flex-1 justify-center">
-                    <View className="flex-row items-center gap-1.5">
-                      <Text className="text-[15px] font-bold" style={{ color: textPrimary }}>{post.user}</Text>
-                      {post.aiBadge && (
-                        <View className={`px-2 rounded ${isDarkMode ? 'bg-[#0c4a6e]' : 'bg-[#bae6fd]'}`}>
-                          <Text className={`text-[9px] font-[800] ${isDarkMode ? 'text-[#7dd3fc]' : 'text-[#0284c7]'}`}>AI</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text className="text-xs mt-0.5" style={{ color: textSecondary }}>{post.role}</Text>
-                  </View>
-                  <View className="flex-row items-start gap-2">
-                    <Text className="text-xs mt-0.5" style={{ color: textSecondary }}>{post.time}</Text>
-                    <TouchableOpacity>
-                      <Ionicons name="ellipsis-horizontal" size={20} color={textSecondary} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <Text className="text-sm leading-[22px] mb-3" style={{ color: isDarkMode ? '#e5e7eb' : '#374151' }}>{post.content}</Text>
-
-                <View className="flex-row flex-wrap gap-2 mb-3">
-                  {post.tags.map((tag, index) => (
-                    <View key={index} className={`px-2.5 py-1 rounded-md ${isDarkMode ? 'bg-white/10' : 'bg-[#f3f4f6]'}`}>
-                      <Text className={`text-xs font-semibold ${isDarkMode ? 'text-[#d1d5db]' : 'text-[#4b5563]'}`}>{tag}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                <View className={`w-full h-[220px] rounded-xl overflow-hidden mb-4 relative ${isDarkMode ? 'bg-[#1f1f2e]' : 'bg-[#f3f4f6]'}`}>
-                  <Image source={{ uri: post.image }} className="w-full h-full" contentFit="cover" />
-                  {post.isAiGenerated && (
-                    <View className={`absolute top-3 left-3 flex-row items-center gap-1 px-2.5 py-1.5 rounded-lg ${isDarkMode ? 'bg-black/70' : 'bg-white/90'}`}>
-                      <Ionicons name="sparkles" size={12} color="#0ea5e9" />
-                      <Text className={`text-[11px] font-bold ${isDarkMode ? 'text-[#bae6fd]' : 'text-[#0284c7]'}`}>AI Generated</Text>
-                    </View>
-                  )}
-                </View>
-
-                <View className="flex-row items-center gap-5">
-                  <TouchableOpacity className="flex-row items-center gap-1.5">
-                    <Ionicons name="heart-outline" size={24} color={textSecondary} />
-                    <Text className="text-[13px] font-semibold" style={{ color: textSecondary }}>{post.likes}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity className="flex-row items-center gap-1.5">
-                    <Ionicons name="chatbubble-outline" size={24} color={textSecondary} />
-                    <Text className="text-[13px] font-semibold" style={{ color: textSecondary }}>{post.comments}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity className="flex-row items-center gap-1.5">
-                    <Ionicons name="share-social-outline" size={24} color={textSecondary} />
-                    <Text className="text-[13px] font-semibold" style={{ color: textSecondary }}>{post.shares}</Text>
-                  </TouchableOpacity>
-                  <View className="flex-1" />
-                  <TouchableOpacity>
-                    <Ionicons name="bookmark-outline" size={24} color={textSecondary} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
-          </View>
+          )}
         </View>
-      </ScrollView>
+      </Animated.View>
+
+      {/* Dedicated Edit Profile Overlay (Slides from bottom) */}
+      {isProfileOpen && drawerType === 'edit-profile' && (
+        <Animated.View
+          entering={SlideInDown.duration(400).easing(Easing.bezier(0.33, 1, 0.68, 1))}
+          exiting={SlideOutDown.duration(300)}
+          className="absolute inset-0 z-[2300]"
+        >
+          <View className="flex-1 bg-white">
+            <EditProfileView
+              isDarkMode={isDarkMode}
+              onBack={() => setDrawerType('profile')}
+              onOpenEditBio={() => setDrawerType('edit-bio')}
+              currentBio={userBio}
+            />
+          </View>
+        </Animated.View>
+      )}
+
+      {/* Dedicated Edit Bio Overlay (Slides from bottom) */}
+      {isProfileOpen && drawerType === 'edit-bio' && (
+        <Animated.View
+          entering={SlideInDown.duration(400).easing(Easing.bezier(0.33, 1, 0.68, 1))}
+          exiting={SlideOutDown.duration(300)}
+          className="absolute inset-0 z-[2400]"
+        >
+          <View className="flex-1 bg-white">
+            <EditBioView
+              isDarkMode={isDarkMode}
+              onClose={() => setDrawerType('edit-profile')}
+              initialBio={userBio}
+              onSave={(newBio: string) => {
+                setUserBio(newBio);
+                setDrawerType('edit-profile');
+              }}
+            />
+          </View>
+        </Animated.View>
+      )}
     </View>
   );
 }
+
+

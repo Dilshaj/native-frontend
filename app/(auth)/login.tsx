@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity, Platform, Dimensions, Image, TextInput, Keyboard, KeyboardAvoidingView } from 'react-native';
+import { Text, View, TouchableOpacity, Platform, Dimensions, Image, TextInput, Keyboard, KeyboardAvoidingView, useColorScheme } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,6 +24,16 @@ export default function LoginScreen() {
     const spacerHeight = useSharedValue(INITIAL_SPACER);
     const scrollRef = useAnimatedRef<Animated.ScrollView>();
     const [scrollPadding, setScrollPadding] = useState(50);
+
+    const colorScheme = useColorScheme();
+    const isDarkMode = colorScheme === 'dark';
+
+    const bg = 'transparent'; // Fix: Always transparent to show layout animations
+    const cardBg = isDarkMode ? '#1f2937' : '#ffffff';
+    const textPrimary = isDarkMode ? '#f3f4f6' : '#111827';
+    const textSecondary = isDarkMode ? '#9ca3af' : '#6b7280';
+    const inputBg = isDarkMode ? 'rgba(255,255,255,0.1)' : '#ffffff'; // Fix: Light white glass effect
+    const borderColor = isDarkMode ? 'rgba(255,255,255,0.1)' : '#e5e7eb';
 
     useEffect(() => {
         const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -61,8 +71,8 @@ export default function LoginScreen() {
     }));
 
     return (
-        <View className="flex-1 bg-transparent">
-            <StatusBar style="dark" />
+        <View className="flex-1" style={{ backgroundColor: bg }}>
+            <StatusBar style={isDarkMode ? 'light' : 'dark'} />
 
             {/* Fixed Background Layer - REMOVED (Handled in Layout) */}
 
@@ -82,7 +92,7 @@ export default function LoginScreen() {
                 </Animated.View>
 
                 {/* Fixed Card Container */}
-                <View className="flex-1 bg-white rounded-t-[30px] shadow-xl overflow-hidden">
+                <View className="flex-1 rounded-t-[30px] shadow-xl overflow-hidden" style={{ backgroundColor: cardBg }}>
 
                     {/* Internal ScrollView with increased padding */}
                     <Animated.ScrollView
@@ -97,8 +107,8 @@ export default function LoginScreen() {
                     >
 
                         <View className="bg-transparent mb-6">
-                            <Text className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</Text>
-                            <Text className="text-gray-500 text-base">Please sign in to your account</Text>
+                            <Text className="text-3xl font-bold mb-2" style={{ color: textPrimary }}>Welcome Back</Text>
+                            <Text className="text-base" style={{ color: textSecondary }}>Please sign in to your account</Text>
                         </View>
 
                         <View className="gap-4 mb-4">
@@ -107,13 +117,15 @@ export default function LoginScreen() {
                                 autoCapitalize="none"
                                 keyboardType="email-address"
                                 className="h-12"
-                                style={{ fontSize: 15 }}
+                                style={{ fontSize: 15, backgroundColor: inputBg, color: textPrimary, borderColor: borderColor }}
+                                placeholderTextColor={textSecondary}
                             />
                             <Input
                                 placeholder="Password"
                                 isPassword
                                 className="h-12"
-                                style={{ fontSize: 15 }}
+                                style={{ fontSize: 15, backgroundColor: inputBg, color: textPrimary, borderColor: borderColor }}
+                                placeholderTextColor={textSecondary}
                             />
                         </View>
 
@@ -122,10 +134,10 @@ export default function LoginScreen() {
                                 onPress={() => setRememberMe(!rememberMe)}
                                 className="flex-row items-center gap-2"
                             >
-                                <View className={`w-5 h-5 rounded mt-0.5 border ${rememberMe ? 'bg-blue-600 border-blue-600' : 'border-gray-400 bg-white'} justify-center items-center`}>
+                                <View className={`w-5 h-5 rounded mt-0.5 border ${rememberMe ? 'bg-blue-600 border-blue-600' : 'border-gray-400'} justify-center items-center`} style={!rememberMe ? { backgroundColor: isDarkMode ? 'transparent' : 'white', borderColor: textSecondary } : {}}>
                                     {rememberMe && <Ionicons name="checkmark" size={14} color="white" />}
                                 </View>
-                                <Text className="text-gray-600 text-sm mt-0.5">Remember me</Text>
+                                <Text className="text-sm mt-0.5" style={{ color: textSecondary }}>Remember me</Text>
                             </TouchableOpacity>
 
                             <View className="flex-1" />
@@ -145,21 +157,23 @@ export default function LoginScreen() {
                         </Button>
 
                         <View className="flex-row items-center mb-6 gap-4">
-                            <View className="flex-1 h-[1px] bg-gray-200" />
-                            <Text className="text-gray-400 text-xs font-bold uppercase tracking-wider">Or continue with</Text>
-                            <View className="flex-1 h-[1px] bg-gray-200" />
+                            <View className="flex-1 h-[1px]" style={{ backgroundColor: borderColor }} />
+                            <Text className="text-xs font-bold uppercase tracking-wider" style={{ color: textSecondary }}>Or continue with</Text>
+                            <View className="flex-1 h-[1px]" style={{ backgroundColor: borderColor }} />
                         </View>
 
                         <Button
                             variant="google"
                             icon={<Image source={require('../../assets/images/google-logo.png')} style={{ width: 24, height: 24 }} />}
                             className="mb-10 shadow-sm"
+                            style={{ backgroundColor: isDarkMode ? '#374151' : 'white', borderColor: borderColor, borderWidth: 1 }}
+                            textStyle={{ color: textPrimary }}
                         >
                             Sign in with Google
                         </Button>
 
                         <View className="flex-row justify-center items-center pb-10">
-                            <Text className="text-gray-600 mr-1 text-base">Don't have an account?</Text>
+                            <Text className="mr-1 text-base" style={{ color: textSecondary }}>Don't have an account?</Text>
                             <TouchableOpacity onPress={() => router.push('/signup')}>
                                 <Text className="text-blue-600 font-bold text-base">Sign up</Text>
                             </TouchableOpacity>
